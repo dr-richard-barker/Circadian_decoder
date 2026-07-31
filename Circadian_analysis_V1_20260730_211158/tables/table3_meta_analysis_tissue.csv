@@ -1,0 +1,7 @@
+Stratum,N_Studies,Pooled_Effect_h,CI_95_Lower,CI_95_Upper,P_Value,I2_pct,Tau2,Notes
+cell_culture,1.0,,,,NA,,,Too few studies in stratum
+hypocotyl,3.0,-0.044,-0.094,0.006,0.0879,0.013,0.0,
+leaf,3.0,0.19,-0.032,0.412,0.0938,0.0,0.0,
+root,4.0,-0.167,-0.24,-0.093,0.0000,8.924,0.001,
+shoot,2.0,0.006,-0.254,0.267,0.9612,76.284,0.027,
+whole_seedling,5.0,-0.19,-0.43,0.05,0.1214,91.754,0.066,

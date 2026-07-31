@@ -1,0 +1,27 @@
+OSD_ID,Platform,Tissue,Ecotype,Hardware,Light_Regime,N_Flight,N_Ground,N_Total
+OSD-120,"['RNA Sequencing (RNA-Seq)', 'Photography']",root,Col-0,petri dish,unknown,44,46,90
+OSD-121,"['DNA microarray', 'Image analysis', 'ELISA']",shoot,Landsberg ecotype,BRIC-PDFU,dark,3,3,6
+OSD-136,DNA microarray,root,Ws,,continuous_light,0,0,9
+OSD-147,DNA microarray,hypocotyl,Col-0,BRIC,continuous_light,9,9,18
+OSD-17,DNA microarray,cell_culture,Col-0,,unknown,12,12,24
+OSD-193,RNA Sequencing (RNA-Seq),root,Col-0,Vegetable Production System (Veggie),unknown,16,16,32
+OSD-205,DNA microarray,hypocotyl,Col-0,BRIC-LED (Biological Research In a Canister - Light Emitting Diode),dark,8,8,16
+OSD-208,"['RNA Sequencing (RNA-Seq)', 'DNA microarray']",root,Col-0,growth chamber,continuous_light,0,6,6
+OSD-217,"['Whole Genome Bisulfite Sequencing', 'RNA Sequencing (RNA-Seq)']",leaf,Ws,Vegetable Production System (Veggie),unknown,12,12,24
+OSD-218,RNA Sequencing (RNA-Seq),root,Col-0,Vegetable Production System (Veggie),unknown,16,16,32
+OSD-223,RNA Sequencing (RNA-Seq),root,Col-0,European Modular Cultivation System (EMCS),continuous_light,30,10,40
+OSD-251,RNA Sequencing (RNA-Seq),whole_seedling,Landsberg ecotype,European Modular Cultivation System (EMCS),unknown,20,0,20
+OSD-281,RNA Sequencing (RNA-Seq),root,Sku5,Vegetable Production System (Veggie),unknown,16,16,32
+OSD-314,RNA Sequencing (RNA-Seq),whole_seedling,Col-0,European Modular Cultivation System (EMCS),LD_16:8,11,6,17
+OSD-321,RNA Sequencing (RNA-Seq),whole_seedling,Col-0,BRIC-PDFU (Petri Dish Fixation Unit),dark,22,22,44
+OSD-346,RNA Sequencing (RNA-Seq),,Landsberg erecta,European Modular Cultivation System (EMCS),unknown,36,0,36
+OSD-37,RNA Sequencing (RNA-Seq),whole_seedling,Col-0,BRIC-PDFU (Petri Dish Fixation Unit),dark,28,28,56
+OSD-38,"['mass spectrometry', 'RNA Sequencing (RNA-Seq)']",whole_seedling,wild_type,BRIC-PDFU,dark,9,27,36
+OSD-427,RNA Sequencing (RNA-Seq),leaf,Col-0,Vegetable Production System (Veggie),continuous_light,24,24,48
+OSD-437,RNA Sequencing (RNA-Seq),shoot,Col-0,European Modular Cultivation System (EMCS),LD_16:8,16,3,19
+OSD-44,DNA microarray,whole_seedling,act2-3,,dark,6,6,12
+OSD-46,DNA microarray,whole_seedling,wild_type,,unknown,0,0,44
+OSD-480,RNA Sequencing (RNA-Seq),root,Col-0,European Modular Cultivation System (EMCS),continuous_light,400,0,400
+OSD-522,"['mass spectrometry', 'RNA Sequencing (RNA-Seq)']",shoot,Col-0,,LD_4:2,18,18,36
+OSD-678,RNA Sequencing (RNA-Seq),leaf,Col-0,Petri Dish,continuous_light,18,18,36
+OSD-7,DNA microarray,hypocotyl,Ws,Advanced Biological Research System (ABRS),unknown,18,18,36

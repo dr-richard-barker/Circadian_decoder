@@ -1,0 +1,265 @@
+{
+  "overall": {
+    "overall": {
+      "POOLED_EFFECT": -0.09045546,
+      "SE": 0.04543157,
+      "CI_LOWER": -0.1794997,
+      "CI_UPPER": -0.00141121,
+      "Z": -1.991026,
+      "P_VALUE": 0.046478,
+      "Q": 126.1782,
+      "Q_P": 1.016624e-18,
+      "I2": 86.48785,
+      "TAU2": 0.0271722,
+      "N_STUDIES": 18.0
+    }
+  },
+  "tissue": {
+    "cell_culture": {
+      "n_studies": 1,
+      "pooled_effect": -0.061539775387366547,
+      "error": "Too few studies in stratum"
+    },
+    "hypocotyl": {
+      "POOLED_EFFECT": -0.04366787,
+      "SE": 0.02559176,
+      "CI_LOWER": -0.09382681,
+      "CI_UPPER": 0.006491064,
+      "Z": -1.706325,
+      "P_VALUE": 0.08794754,
+      "Q": 2.757174,
+      "Q_P": 0.2519343,
+      "I2": 0.01263236,
+      "TAU2": 2.890924e-07,
+      "N_STUDIES": 3.0
+    },
+    "leaf": {
+      "POOLED_EFFECT": 0.1897095,
+      "SE": 0.1131975,
+      "CI_LOWER": -0.03215358,
+      "CI_UPPER": 0.4115725,
+      "Z": 1.675915,
+      "P_VALUE": 0.09375475,
+      "Q": 0.6609106,
+      "Q_P": 0.7185965,
+      "I2": 0.0,
+      "TAU2": 0.0,
+      "N_STUDIES": 3.0
+    },
+    "root": {
+      "POOLED_EFFECT": -0.1665367,
+      "SE": 0.03738592,
+      "CI_LOWER": -0.2398118,
+      "CI_UPPER": -0.09326165,
+      "Z": -4.45453,
+      "P_VALUE": 8.407719e-06,
+      "Q": 2.309157,
+      "Q_P": 0.5107689,
+      "I2": 8.924268,
+      "TAU2": 0.0005298922,
+      "N_STUDIES": 4.0
+    },
+    "shoot": {
+      "POOLED_EFFECT": 0.006462498,
+      "SE": 0.1329562,
+      "CI_LOWER": -0.254127,
+      "CI_UPPER": 0.2670519,
+      "Z": 0.0486062,
+      "P_VALUE": 0.9612331,
+      "Q": 4.216597,
+      "Q_P": 0.04003036,
+      "I2": 76.28419,
+      "TAU2": 0.02704552,
+      "N_STUDIES": 2.0
+    },
+    "whole_seedling": {
+      "POOLED_EFFECT": -0.1899728,
+      "SE": 0.1226643,
+      "CI_LOWER": -0.4303903,
+      "CI_UPPER": 0.05044471,
+      "Z": -1.548722,
+      "P_VALUE": 0.1214486,
+      "Q": 46.11788,
+      "Q_P": 2.327589e-09,
+      "I2": 91.75366,
+      "TAU2": 0.06635198,
+      "N_STUDIES": 5.0
+    }
+  },
+  "hardware": {
+    "": {
+      "POOLED_EFFECT": -0.05602333,
+      "SE": 0.03540702,
+      "CI_LOWER": -0.1254198,
+      "CI_UPPER": 0.01337315,
+      "Z": -1.582266,
+      "P_VALUE": 0.1135888,
+      "Q": 0.09288042,
+      "Q_P": 0.7605467,
+      "I2": 0.0,
+      "TAU2": 0.0,
+      "N_STUDIES": 2.0
+    },
+    "Advanced Biological Research System (ABRS)": {
+      "n_studies": 1,
+      "pooled_effect": 0.08982587801165542,
+      "error": "Too few studies in stratum"
+    },
+    "BRIC": {
+      "n_studies": 1,
+      "pooled_effect": -0.06487515497208207,
+      "error": "Too few studies in stratum"
+    },
+    "BRIC-LED (Biological Research In a Canister - Light Emitting Diode)": {
+      "n_studies": 1,
+      "pooled_effect": -0.04648298907838466,
+      "error": "Too few studies in stratum"
+    },
+    "BRIC-PDFU": {
+      "POOLED_EFFECT": -0.3144192,
+      "SE": 0.1998864,
+      "CI_LOWER": -0.7061894,
+      "CI_UPPER": 0.07735087,
+      "Z": -1.57299,
+      "P_VALUE": 0.1157212,
+      "Q": 9.289717,
+      "Q_P": 0.002304438,
+      "I2": 89.23541,
+      "TAU2": 0.07135516,
+      "N_STUDIES": 2.0
+    },
+    "BRIC-PDFU (Petri Dish Fixation Unit)": {
+      "POOLED_EFFECT": -0.2451314,
+      "SE": 0.192404,
+      "CI_LOWER": -0.6222363,
+      "CI_UPPER": 0.1319734,
+      "Z": -1.274046,
+      "P_VALUE": 0.2026472,
+      "Q": 16.70137,
+      "Q_P": 4.374936e-05,
+      "I2": 94.01247,
+      "TAU2": 0.06973185,
+      "N_STUDIES": 2.0
+    },
+    "European Modular Cultivation System (EMCS)": {
+      "POOLED_EFFECT": 0.1433989,
+      "SE": 0.08350855,
+      "CI_LOWER": -0.0202748,
+      "CI_UPPER": 0.3070727,
+      "Z": 1.717177,
+      "P_VALUE": 0.08594686,
+      "Q": 0.003170312,
+      "Q_P": 0.9550984,
+      "I2": 0.0,
+      "TAU2": 0.0,
+      "N_STUDIES": 2.0
+    },
+    "Petri Dish": {
+      "n_studies": 1,
+      "pooled_effect": -0.2238658897351442,
+      "error": "Too few studies in stratum"
+    },
+    "Vegetable Production System (Veggie)": {
+      "POOLED_EFFECT": -0.07752101,
+      "SE": 0.07909829,
+      "CI_LOWER": -0.2325508,
+      "CI_UPPER": 0.0775088,
+      "Z": -0.9800592,
+      "P_VALUE": 0.3270569,
+      "Q": 11.96696,
+      "Q_P": 0.01759869,
+      "I2": 74.9148,
+      "TAU2": 0.0205868,
+      "N_STUDIES": 5.0
+    },
+    "petri dish": {
+      "n_studies": 1,
+      "pooled_effect": -0.13445997267961474,
+      "error": "Too few studies in stratum"
+    }
+  },
+  "light_regime": {
+    "LD_16:8": {
+      "POOLED_EFFECT": 0.1433989,
+      "SE": 0.08350855,
+      "CI_LOWER": -0.0202748,
+      "CI_UPPER": 0.3070727,
+      "Z": 1.717177,
+      "P_VALUE": 0.08594686,
+      "Q": 0.003170312,
+      "Q_P": 0.9550984,
+      "I2": 0.0,
+      "TAU2": 0.0,
+      "N_STUDIES": 2.0
+    },
+    "continuous_light": {
+      "POOLED_EFFECT": 0.008833738,
+      "SE": 0.1034609,
+      "CI_LOWER": -0.193946,
+      "CI_UPPER": 0.2116134,
+      "Z": 0.08538236,
+      "P_VALUE": 0.9319574,
+      "Q": 2.997011,
+      "Q_P": 0.2234639,
+      "I2": 46.44939,
+      "TAU2": 0.01525728,
+      "N_STUDIES": 3.0
+    },
+    "dark": {
+      "POOLED_EFFECT": -0.1969311,
+      "SE": 0.08725278,
+      "CI_LOWER": -0.3679434,
+      "CI_UPPER": -0.02591875,
+      "Z": -2.257018,
+      "P_VALUE": 0.02400697,
+      "Q": 72.56613,
+      "Q_P": 2.993731e-14,
+      "I2": 91.83466,
+      "TAU2": 0.04029283,
+      "N_STUDIES": 6.0
+    },
+    "unknown": {
+      "POOLED_EFFECT": -0.09308935,
+      "SE": 0.04497628,
+      "CI_LOWER": -0.1812412,
+      "CI_UPPER": -0.004937468,
+      "Z": -2.069743,
+      "P_VALUE": 0.03847638,
+      "Q": 14.63122,
+      "Q_P": 0.02332732,
+      "I2": 59.55748,
+      "TAU2": 0.007344849,
+      "N_STUDIES": 7.0
+    }
+  },
+  "fork_a": {
+    "overall": {
+      "POOLED_EFFECT": -0.09187321,
+      "SE": 0.03918611,
+      "CI_LOWER": -0.1686766,
+      "CI_UPPER": -0.01506984,
+      "Z": -2.344535,
+      "P_VALUE": 0.01905083,
+      "Q": 24.25017,
+      "Q_P": 0.003922842,
+      "I2": 74.44279,
+      "TAU2": 0.01017306,
+      "N_STUDIES": 10.0
+    }
+  },
+  "fork_b": {
+    "overall": {
+      "POOLED_EFFECT": -0.09045546,
+      "SE": 0.04543157,
+      "CI_LOWER": -0.1794997,
+      "CI_UPPER": -0.00141121,
+      "Z": -1.991026,
+      "P_VALUE": 0.046478,
+      "Q": 126.1782,
+      "Q_P": 1.016624e-18,
+      "I2": 86.48785,
+      "TAU2": 0.0271722,
+      "N_STUDIES": 18.0
+    }
+  }
+}
