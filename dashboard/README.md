@@ -25,15 +25,15 @@ just static HTML, JavaScript, and data files.
 
 ## Deploy to GitHub Pages
 
-### Option 1: Using the docs/ folder
+### Option 1: Using the dashboard/ folder
 
 1. Push this repository to GitHub
 2. Go to **Settings** > **Pages**
 3. Under **Source**, select **Deploy from a branch**
-4. Select **main** branch and **/docs** folder
+4. Select **main** branch and **/dashboard** folder (or root and access via `/dashboard/index.html`)
 5. Click **Save**
 6. Your dashboard will be available at:
-   `https://<username>.github.io/<repo-name>/`
+   `https://<username>.github.io/Circadian_decoder/dashboard/`
 
 ### Option 2: Using GitHub Actions (automatic deployment)
 
@@ -44,7 +44,7 @@ name: Deploy Dashboard
 on:
   push:
     branches: [main]
-    paths: ['docs/**']
+    paths: ['dashboard/**']
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -53,13 +53,13 @@ jobs:
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          publish_dir: ./dashboard
 ```
 
 ## Local preview
 
 ```bash
-cd docs
+cd dashboard
 python3 -m http.server 8000
 # Open http://localhost:8000 in your browser
 ```

@@ -1,0 +1,45 @@
+cff-version: 1.2.0
+message: "If you use this software or data, please cite both the software and the accompanying paper."
+title: "Spaceflight Circadian Decoder: Deep learning analysis of circadian clock phase disruption in spaceflight-grown Arabidopsis thaliana"
+type: software
+authors:
+  - given-names: "Richard"
+    family-names: "Barker"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+preferred-citation:
+  type: article
+  title: "Spaceflight alters plant circadian clock phase: A ChronoGauge analysis of NASA GeneLab Arabidopsis transcriptomics"
+  authors:
+    - given-names: "Richard"
+      family-names: "Barker"
+      orcid: "https://orcid.org/0000-0000-0000-0000"
+  journal: "npj Microgravity"
+  year: 2026
+  doi: "10.1038/s41526-000-0000-0"
+  notes: "DOI placeholder — to be assigned upon acceptance"
+keywords:
+  - spaceflight
+  - circadian clock
+  - Arabidopsis thaliana
+  - ChronoGauge
+  - deep learning
+  - NASA GeneLab
+  - transcriptomics
+  - meta-analysis
+  - plant biology
+  - microgravity
+license: MIT
+license-url: "https://opensource.org/licenses/MIT"
+repository-code: "https://github.com/dr-richard-barker/Circadian_decoder"
+version: "1.0.0"
+date-released: "2026-07-30"
+abstract: >
+  This software applies ChronoGauge, a bagging ensemble of 100 neural network
+  circadian time predictors, to all processed Arabidopsis thaliana spaceflight
+  transcriptomics data from NASA GeneLab (23 studies, 603 samples). It quantifies
+  circadian phase shifts between spaceflight and ground control samples using
+  Watson-Williams tests and random-effects meta-analysis (metafor). The analysis
+  is performed in two forks: Fork A (14 accessions from Barker 2023) and Fork B
+  (all Arabidopsis spaceflight transcriptomics). Results show a small but
+  significant overall phase advance under spaceflight (-0.09 h, p = 0.046),
+  with the strongest effect in root tissue (-0.17 h, p < 0.001).

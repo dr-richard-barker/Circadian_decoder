@@ -1,4 +1,262 @@
-<!DOCTYPE html>
+"""
+Generate a self-contained interactive Plotly dashboard for GitHub Pages.
+Produces static HTML + data.js + local plotly.min.js that can be deployed
+to GitHub Pages (docs/ folder convention) with no server-side processing.
+
+Dashboard views:
+  1. Circadian phase overview (predicted CT vs circular variance, colored by condition)
+  2. Phase shift forest plot (per-study with CIs and pooled estimate)
+  3. Circadian fingerprint (circular variance by condition + study)
+  4. Clock gene expression heatmap (11 core clock genes)
+  5. t-SNE trajectory (from trajectory analysis)
+"""
+import os
+import json
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.express as px
+import requests
+
+src_dir = os.path.dirname(os.path.abspath(__file__))
+
+if os.path.exists("/mnt/results"):
+    RESULTS_DIR = "/mnt/results"
+elif os.path.exists("/results"):
+    RESULTS_DIR = "/results"
+else:
+    RESULTS_DIR = os.path.abspath(os.path.join(src_dir, ".."))
+
+DATA_OUT_DIR = os.path.join(RESULTS_DIR, "data")
+
+if os.path.exists("/workspace/spaceflight-circadian-decoder/docs"):
+    DOCS_DIR = "/workspace/spaceflight-circadian-decoder/docs"
+else:
+    DOCS_DIR = os.path.abspath(os.path.join(src_dir, "..", "dashboard"))
+
+if os.path.exists("/workspace/genelab_data"):
+    DATA_DIR = "/workspace/genelab_data"
+else:
+    DATA_DIR = os.path.abspath(os.path.join(src_dir, "..", "genelab_data"))
+
+os.makedirs(DOCS_DIR, exist_ok=True)
+
+# Phylo color palette
+PHYLO_COLORS = {
+    'blue': '#0279EE', 'orange': '#FF9400', 'green': '#75A025',
+    'pink': '#FD9BED', 'yellow': '#E9ED4C', 'black': '#000000',
+    'cream': '#ECE9E2', 'white': '#FAF9F3',
+}
+
+
+def download_plotly_js():
+    """Download plotly.min.js for local hosting (no CDN dependency)."""
+    js_path = os.path.join(DOCS_DIR, 'plotly.min.js')
+    if os.path.exists(js_path) and os.path.getsize(js_path) > 1000000:
+        print("  plotly.min.js already exists")
+        return
+    print("  Downloading plotly.min.js...")
+    try:
+        r = requests.get('https://cdn.plot.ly/plotly-2.35.2.min.js', timeout=60)
+        if r.status_code == 200:
+            with open(js_path, 'w') as f:
+                f.write(r.text)
+            print(f"  Downloaded plotly.min.js ({len(r.text):,} chars)")
+        else:
+            print(f"  HTTP {r.status_code}, will use CDN fallback")
+    except Exception as e:
+        print(f"  Download failed: {e}, will use CDN fallback")
+
+
+def prepare_data():
+    """Load and prepare all data for the dashboard."""
+    print("Loading data...")
+
+    # Predictions
+    predictions = pd.read_csv(os.path.join(DATA_OUT_DIR, 'all_predictions.csv'))
+    metadata_path = os.path.join(DATA_DIR, 'harmonized_metadata.csv')
+    if not os.path.exists(metadata_path):
+        metadata_path = os.path.join(RESULTS_DIR, 'tables', 'tableS1_sample_metadata.csv')
+    metadata = pd.read_csv(metadata_path)
+
+    # Merge predictions with metadata
+    merged = predictions.merge(
+        metadata[['sample_name', 'osd_id', 'condition', 'tissue', 'light_regime',
+                  'ecotype', 'hardware']],
+        on=['sample_name', 'osd_id'], how='left'
+    )
+
+    # Per-study results
+    per_study = pd.read_csv(os.path.join(DATA_OUT_DIR, 'per_study_results.csv'))
+
+    # Meta-analysis results
+    with open(os.path.join(DATA_OUT_DIR, 'meta_analysis_results.json')) as f:
+        meta_results = json.load(f)
+
+    # Clock gene expression
+    clock_expr = pd.read_csv(os.path.join(DATA_OUT_DIR, 'clock_gene_expression.csv'))
+
+    # Trajectory analysis
+    trajectory = None
+    traj_path = os.path.join(DATA_OUT_DIR, 'trajectory_analysis.csv')
+    if os.path.exists(traj_path):
+        trajectory = pd.read_csv(traj_path)
+
+    # t-SNE results (recompute from model predictions for the dashboard)
+    from sklearn.manifold import TSNE
+    from sklearn.preprocessing import StandardScaler
+    model_preds = pd.read_csv(os.path.join(DATA_OUT_DIR, 'all_model_predictions.csv'))
+    feature_cols = [c for c in model_preds.columns if c not in ['sample_name', 'osd_id']]
+    X = model_preds[feature_cols].fillna(12).values
+    X_scaled = StandardScaler().fit_transform(X)
+    tsne = TSNE(n_components=2, perplexity=30, max_iter=1000, random_state=42)
+    tsne_results = tsne.fit_transform(X_scaled)
+
+    tsne_df = model_preds[['sample_name', 'osd_id']].copy()
+    tsne_df['tSNE1'] = tsne_results[:, 0]
+    tsne_df['tSNE2'] = tsne_results[:, 1]
+    tsne_df = tsne_df.merge(
+        metadata[['sample_name', 'osd_id', 'condition', 'tissue']],
+        on=['sample_name', 'osd_id'], how='left'
+    )
+    tsne_df = tsne_df.merge(predictions[['sample_name', 'osd_id', 'predicted_CT']],
+                            on=['sample_name', 'osd_id'], how='left')
+
+    return merged, per_study, meta_results, clock_expr, trajectory, tsne_df
+
+
+def create_dashboard_data_js(merged, per_study, meta_results, clock_expr, trajectory, tsne_df):
+    """Create data.js with all data embedded as JSON."""
+    print("Creating data.js...")
+
+    # Prepare scatter data for phase overview
+    scatter_data = []
+    for _, row in merged.iterrows():
+        scatter_data.append({
+            'sample_name': str(row['sample_name']),
+            'osd_id': str(row['osd_id']),
+            'condition': str(row.get('condition', '')),
+            'tissue': str(row.get('tissue', '')),
+            'light_regime': str(row.get('light_regime', '')),
+            'ecotype': str(row.get('ecotype', '')),
+            'predicted_CT': float(row['predicted_CT']) if pd.notna(row['predicted_CT']) else None,
+            'circular_variance': float(row['circular_variance']) if pd.notna(row['circular_variance']) else None,
+        })
+
+    # Prepare forest plot data
+    forest_data = []
+    for _, row in per_study.iterrows():
+        forest_data.append({
+            'osd_id': str(row['osd_id']),
+            'n_flight': int(row['n_flight']) if pd.notna(row['n_flight']) else 0,
+            'n_ground': int(row['n_ground']) if pd.notna(row['n_ground']) else 0,
+            'phase_shift': float(row['phase_shift_hours']) if pd.notna(row['phase_shift_hours']) else None,
+            'ci_lower': float(row['phase_shift_ci_lower']) if pd.notna(row['phase_shift_ci_lower']) else None,
+            'ci_upper': float(row['phase_shift_ci_upper']) if pd.notna(row['phase_shift_ci_upper']) else None,
+            'p_value': float(row['p_value']) if pd.notna(row['p_value']) else None,
+            'tissue': str(row.get('tissue', '')),
+            'light_regime': str(row.get('light_regime', '')),
+            'included': bool(row.get('included_in_meta', False)),
+        })
+
+    # Pooled effect
+    pooled = meta_results.get('overall', {}).get('overall', {})
+
+    # Prepare clock gene heatmap data (subset for performance)
+    # Get unique genes and a subset of samples
+    clock_genes = sorted(clock_expr['gene_name'].dropna().unique())
+    # Sample subset: take up to 200 samples, balanced flight/ground
+    clock_samples = clock_expr[['sample_name', 'osd_id']].drop_duplicates()
+    # Merge with condition
+    meta_cond = merged[['sample_name', 'osd_id', 'condition']].drop_duplicates()
+    clock_samples = clock_samples.merge(meta_cond, on=['sample_name', 'osd_id'], how='left')
+    flight_samples = clock_samples[clock_samples['condition'] == 'flight']['sample_name'].tolist()
+    ground_samples = clock_samples[clock_samples['condition'] == 'ground_control']['sample_name'].tolist()
+    # Take up to 100 each
+    selected_samples = flight_samples[:100] + ground_samples[:100]
+
+    clock_pivot = clock_expr[clock_expr['sample_name'].isin(selected_samples)].pivot_table(
+        index='gene_name', columns='sample_name', values='expression'
+    )
+    # Sort: ground first, then flight
+    sample_conditions = clock_samples.set_index('sample_name')['condition'].to_dict()
+    sorted_samples = sorted(selected_samples, key=lambda s: (sample_conditions.get(s, ''), s))
+    clock_pivot = clock_pivot[sorted_samples]
+
+    heatmap_z = clock_pivot.values.tolist()
+    heatmap_x = sorted_samples
+    heatmap_y = list(clock_pivot.index)
+
+    # Prepare t-SNE data
+    tsne_data = []
+    for _, row in tsne_df.iterrows():
+        tsne_data.append({
+            'sample_name': str(row['sample_name']),
+            'osd_id': str(row['osd_id']),
+            'condition': str(row.get('condition', '')),
+            'tissue': str(row.get('tissue', '')),
+            'tSNE1': float(row['tSNE1']),
+            'tSNE2': float(row['tSNE2']),
+            'predicted_CT': float(row['predicted_CT']) if pd.notna(row['predicted_CT']) else None,
+        })
+
+    # Trajectory analysis data
+    traj_data = []
+    if trajectory is not None:
+        for _, row in trajectory.iterrows():
+            traj_data.append({
+                'osd_id': str(row['osd_id']),
+                'tsne_centroid_distance': float(row['tsne_centroid_distance']),
+                'phase_shift': float(row['phase_shift_hours']) if pd.notna(row['phase_shift_hours']) else None,
+                'p_value': float(row['p_value']) if pd.notna(row['p_value']) else None,
+            })
+
+    # Studies list for dropdowns
+    studies = sorted(merged['osd_id'].unique().tolist())
+    tissues = sorted([t for t in merged['tissue'].dropna().unique().tolist() if t])
+    light_regimes = sorted([l for l in merged['light_regime'].dropna().unique().tolist() if l])
+
+    data_obj = {
+        'scatter': scatter_data,
+        'forest': forest_data,
+        'pooled': {
+            'effect': float(pooled.get('POOLED_EFFECT', 0)),
+            'ci_lower': float(pooled.get('CI_LOWER', 0)),
+            'ci_upper': float(pooled.get('CI_UPPER', 0)),
+            'p_value': float(pooled.get('P_VALUE', 1)),
+            'i2': float(pooled.get('I2', 0)),
+            'n_studies': int(pooled.get('N_STUDIES', 0)),
+        },
+        'heatmap': {
+            'z': heatmap_z,
+            'x': heatmap_x,
+            'y': heatmap_y,
+            'sample_conditions': {s: sample_conditions.get(s, '') for s in heatmap_x},
+        },
+        'tsne': tsne_data,
+        'trajectory': traj_data,
+        'studies': studies,
+        'tissues': tissues,
+        'light_regimes': light_regimes,
+    }
+
+    # Write data.js
+    js_content = "// Auto-generated dashboard data for Spaceflight Circadian Decoder\n"
+    js_content += "// Generated from NASA GeneLab Arabidopsis transcriptomics analysis\n\n"
+    js_content += "const DASHBOARD_DATA = " + json.dumps(data_obj, separators=(',', ':')) + ";\n"
+
+    data_path = os.path.join(DOCS_DIR, 'data.js')
+    with open(data_path, 'w') as f:
+        f.write(js_content)
+    print(f"  Saved data.js ({len(js_content):,} chars)")
+
+
+def create_index_html():
+    """Create the main dashboard HTML file."""
+    print("Creating index.html...")
+
+    html = '''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -481,4 +739,123 @@
     updatePhasePlot();
     </script>
 </body>
-</html>
+</html>'''
+
+    html_path = os.path.join(DOCS_DIR, 'index.html')
+    with open(html_path, 'w') as f:
+        f.write(html)
+    print(f"  Saved index.html ({len(html):,} chars)")
+
+
+def create_docs_readme():
+    """Create deployment instructions for GitHub Pages."""
+    readme = '''# Interactive Dashboard - GitHub Pages Deployment
+
+## Overview
+
+This folder contains a self-contained interactive dashboard for exploring the
+spaceflight circadian decoder results. It requires no server-side processing —
+just static HTML, JavaScript, and data files.
+
+## Files
+
+- `index.html` — Main dashboard with 5 interactive views
+- `data.js` — All analysis data embedded as JSON
+- `plotly.min.js` — Plotly.js library (local copy, no CDN dependency)
+
+## Dashboard views
+
+1. **Phase Overview** — Predicted circadian time vs circular variance, with
+   dropdown filters for study, tissue, and light regime
+2. **Forest Plot** — Per-study phase shifts with confidence intervals and
+   pooled meta-analysis estimate
+3. **Circadian Fingerprint** — Box plot of circular variance by condition
+4. **Clock Genes** — Heatmap of 11 core clock genes across samples
+5. **t-SNE Trajectory** — Non-linear embedding of circadian fingerprints,
+   colorable by condition, study, or predicted CT
+
+## Deploy to GitHub Pages
+
+### Option 1: Using the dashboard/ folder
+
+1. Push this repository to GitHub
+2. Go to **Settings** > **Pages**
+3. Under **Source**, select **Deploy from a branch**
+4. Select **main** branch and **/dashboard** folder (or root and access via `/dashboard/index.html`)
+5. Click **Save**
+6. Your dashboard will be available at:
+   `https://<username>.github.io/Circadian_decoder/dashboard/`
+
+### Option 2: Using GitHub Actions (automatic deployment)
+
+Add this workflow to `.github/workflows/deploy-dashboard.yml`:
+
+```yaml
+name: Deploy Dashboard
+on:
+  push:
+    branches: [main]
+    paths: ['dashboard/**']
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dashboard
+```
+
+## Local preview
+
+```bash
+cd dashboard
+python3 -m http.server 8000
+# Open http://localhost:8000 in your browser
+```
+
+## Data sources
+
+- NASA GeneLab (23 Arabidopsis spaceflight transcriptomics studies)
+- ChronoGauge (100-model ensemble circadian time predictor)
+- Watson-Williams test + random-effects meta-analysis (metafor)
+'''
+
+    readme_path = os.path.join(DOCS_DIR, 'README.md')
+    with open(readme_path, 'w') as f:
+        f.write(readme)
+    print(f"  Saved dashboard/README.md")
+
+
+def main():
+    print("=" * 60)
+    print("INTERACTIVE DASHBOARD GENERATION")
+    print("=" * 60)
+
+    # Download plotly.js
+    download_plotly_js()
+
+    # Prepare data
+    merged, per_study, meta_results, clock_expr, trajectory, tsne_df = prepare_data()
+
+    # Create data.js
+    create_dashboard_data_js(merged, per_study, meta_results, clock_expr, trajectory, tsne_df)
+
+    # Create index.html
+    create_index_html()
+
+    # Create deployment README
+    create_docs_readme()
+
+    print("\n" + "=" * 60)
+    print("DASHBOARD GENERATION COMPLETE")
+    print("=" * 60)
+    print(f"Output: {DOCS_DIR}")
+    for f in sorted(os.listdir(DOCS_DIR)):
+        size = os.path.getsize(os.path.join(DOCS_DIR, f))
+        print(f"  {f}: {size:,} bytes")
+
+
+if __name__ == "__main__":
+    main()

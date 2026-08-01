@@ -4,9 +4,9 @@
 
 Richard Barker¹,*
 
-¹ Affiliation to be added
+¹ Department of Botany, University of Wisconsin-Madison, Madison, WI, USA
 
-*Corresponding author: [email]
+*Corresponding author: dr.richard-barker@wisc.edu (or dr.richard.barker@gmail.com)
 
 ## Abstract
 

@@ -1,0 +1,47 @@
+{
+  "fork_a": {
+    "description": "Fork A: 15 accessions from Barker et al. 2023 (npj Microgravity). Mixed platform: RNA-seq + microarray.",
+    "source": "Barker et al. 2023, npj Microgravity",
+    "osd_ids": [7, 17, 37, 38, 44, 46, 120, 121, 136, 147, 205, 208, 213, 218, 251],
+    "notes": "GLDS-213 (OSD-213) is a legacy accession not available in the current OSDR API. OSD-46 (radiation) and OSD-136 (hypobaria) are ground-only studies with no Spaceflight factor. OSD-208 is a ground-only root apex study comparing RNA-seq and microarray."
+  },
+  "fork_b": {
+    "description": "Fork B: All Arabidopsis thaliana spaceflight transcriptomics studies in NASA GeneLab (as of 2025).",
+    "source": "NASA GeneLab OSDR API query for Arabidopsis + transcriptomics + spaceflight",
+    "osd_ids": [7, 17, 37, 38, 44, 120, 121, 147, 193, 205, 217, 218, 223, 251, 281, 314, 321, 346, 427, 437, 480, 522, 678],
+    "notes": "OSD-480 has raw FASTQ only (no processed normalized counts). OSD-522 has unnormalized counts only. Both excluded from ChronoGauge analysis. OSD-251 and OSD-346 are flight-only (no ground controls), excluded from phase-shift meta-analysis."
+  },
+  "excluded_from_chronogauge": {
+    "OSD-213": "Legacy accession, unavailable in current OSDR API",
+    "OSD-480": "Raw FASTQ only, no processed normalized expression data",
+    "OSD-522": "Unnormalized counts only, not suitable for ChronoGauge"
+  },
+  "excluded_from_meta_analysis": {
+    "OSD-46": "Ground-only (radiation study), no Spaceflight factor",
+    "OSD-136": "Ground-only (hypobaria study), no Spaceflight factor",
+    "OSD-208": "Ground-only (root apex RNA-seq vs microarray comparison)",
+    "OSD-251": "Flight-only, no ground controls",
+    "OSD-346": "Flight-only, no ground controls"
+  },
+  "core_clock_genes": {
+    "morning": {"CCA1": "AT2G46830", "LHY": "AT1G01060"},
+    "morning_pseudo_response_regulators": {"PRR9": "AT2G42830", "PRR7": "AT5G02810", "PRR5": "AT5G24470"},
+    "evening": {"TOC1": "AT5G61380", "GI": "AT3G09600"},
+    "evening_complex": {"ELF4": "AT2G40080", "ELF3": "AT3G26740", "LUX": "AT1G75530", "TIC": "AT3G46640"}
+  },
+  "chronogauge": {
+    "model_source": "HuggingFace",
+    "n_ensemble_models": 100,
+    "platforms": {
+      "rnaseq": "RNA-seq normalized counts (AGI gene-level)",
+      "ath1": "Affymetrix ATH1-121501 microarray (probeset-level)",
+      "aragene": "Affymetrix Arabidopsis Gene 1.0 ST microarray (probeset-level)"
+    },
+    "training_data": {
+      "rnaseq": "data/expression_matrices/x_training.csv",
+      "ath1": "data/expression_matrices/x_test_ath.csv",
+      "aragene": "data/expression_matrices/x_test_aragene.csv"
+    },
+    "feature_genes": "data/model_parameters/gene_features_unadjusted.csv"
+  }
+}
