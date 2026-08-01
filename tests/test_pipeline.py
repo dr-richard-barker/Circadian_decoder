@@ -14,6 +14,24 @@ import pytest
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
+# Dynamic path resolution for tests
+if os.path.exists('/workspace/genelab_data'):
+    DATA_DIR = '/workspace/genelab_data'
+else:
+    DATA_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'genelab_data'))
+
+if os.path.exists('/mnt/results'):
+    RESULTS_DIR = '/mnt/results'
+else:
+    RESULTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+DATA_OUT_DIR = os.path.join(RESULTS_DIR, 'data')
+TABLES_DIR = os.path.join(RESULTS_DIR, 'tables')
+
+metadata_file = os.path.join(DATA_DIR, 'harmonized_metadata.csv')
+if not os.path.exists(metadata_file):
+    metadata_file = os.path.join(TABLES_DIR, 'tableS1_sample_metadata.csv')
+
 
 # ============================================================
 # Circular statistics tests
@@ -226,31 +244,31 @@ class TestIntegration:
     """
 
     @pytest.mark.skipif(
-        not os.path.exists('/workspace/genelab_data/harmonized_metadata.csv'),
-        reason="GeneLab data not downloaded"
+        not os.path.exists(metadata_file),
+        reason="GeneLab metadata or tableS1 not found"
     )
     def test_metadata_file_exists(self):
-        df = pd.read_csv('/workspace/genelab_data/harmonized_metadata.csv')
+        df = pd.read_csv(metadata_file)
         assert len(df) > 100
         assert 'osd_id' in df.columns
         assert 'condition' in df.columns
 
     @pytest.mark.skipif(
-        not os.path.exists('/mnt/results/data/all_predictions.csv'),
+        not os.path.exists(os.path.join(DATA_OUT_DIR, 'all_predictions.csv')),
         reason="Predictions not generated"
     )
     def test_predictions_file_exists(self):
-        df = pd.read_csv('/mnt/results/data/all_predictions.csv')
+        df = pd.read_csv(os.path.join(DATA_OUT_DIR, 'all_predictions.csv'))
         assert len(df) > 100
         assert 'predicted_CT' in df.columns
         assert 'circular_variance' in df.columns
 
     @pytest.mark.skipif(
-        not os.path.exists('/mnt/results/data/per_study_results.csv'),
+        not os.path.exists(os.path.join(DATA_OUT_DIR, 'per_study_results.csv')),
         reason="Statistical analysis not run"
     )
     def test_per_study_results_exist(self):
-        df = pd.read_csv('/mnt/results/data/per_study_results.csv')
+        df = pd.read_csv(os.path.join(DATA_OUT_DIR, 'per_study_results.csv'))
         assert len(df) > 5
         assert 'phase_shift_hours' in df.columns
         assert 'p_value' in df.columns
