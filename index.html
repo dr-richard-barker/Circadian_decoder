@@ -24,17 +24,18 @@
     <style>
         /* Design System / Color Tokens */
         :root {
-            --bg-main: #07090e;
-            --bg-card: #0f121d;
-            --bg-control: #161c2b;
-            --border-color: #1e2538;
-            --text-bright: #f3f4f6;
-            --text-muted: #9ca3af;
+            /* Map CoSE theme variables */
+            --bg-main: var(--bg, #07090e);
+            --bg-card: var(--card, #0f121d);
+            --bg-control: var(--card, #161c2b);
+            --border-color: var(--line, #1e2538);
+            --text-bright: var(--fg, #f3f4f6);
+            --text-muted: var(--muted, #9ca3af);
             
             --accent-ground: #10b981;  /* Emerald Green */
             --accent-flight: #ec4899;  /* Cosmic Magenta */
             --accent-meta: #f59e0b;    /* Amber Gold */
-            --accent-blue: #3b82f6;    /* Vibrant Blue */
+            --accent-blue: var(--accent, #3b82f6);    /* CoSE Accent */
             
             --font-title: 'Outfit', sans-serif;
             --font-body: 'Inter', sans-serif;
@@ -73,7 +74,7 @@
         }
 
         /* Glassmorphic Header */
-        header {
+        header.portal-header {
             position: sticky;
             top: 0;
             background: rgba(15, 18, 29, 0.85);
@@ -85,6 +86,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: padding-left 0.22s ease;
+        }
+
+        @media (min-width: 900px) {
+            header.portal-header {
+                padding-left: 220px; /* Space for CoSE topbar elements */
+            }
         }
 
         .logo-container {
@@ -751,13 +759,29 @@
             font-size: 0.8rem;
             color: var(--text-muted);
             margin-top: 60px;
+            margin-bottom: 24px;
+        }
+
+        .portal-download-btn:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: var(--accent-flight) !important;
+            text-decoration: none;
+        }
+
+        /* Adjustments for the CoSE layout & sidebar when open */
+        @media (min-width: 1180px) {
+            body.map-open header.portal-header {
+                padding-left: calc(var(--rail) + 32px) !important;
+            }
         }
     </style>
+    <!-- CoSE Theme Stylesheet -->
+    <link rel="stylesheet" href="https://dr-richard-barker.github.io/Plant_response_to_radiation/cose/theme.css">
 </head>
-<body>
+<body data-site-id="Circadian_decoder" data-brand-logo="https://dr-richard-barker.github.io/Plant_response_to_radiation/cose/cose-logo.png">
 
     <!-- Unified Header -->
-    <header>
+    <header class="portal-header">
         <div class="logo-container">
             <div class="logo-icon">🌿</div>
             <div class="logo-text">
@@ -1313,10 +1337,10 @@
                     </p>
                     
                     <div style="display: flex; flex-direction: column; gap: 12px;">
-                        <a href="manuscript.pdf" download class="nav-tab" style="text-align: center; border: 1px solid var(--border-color); color: var(--text-bright); text-decoration: none; display: block; border-radius: 8px; font-family: var(--font-title); font-weight: 600;">
+                        <a href="manuscript.pdf" download class="portal-download-btn" style="text-align: center; border: 1px solid var(--border-color); color: var(--text-bright); text-decoration: none; display: block; border-radius: 8px; font-family: var(--font-title); font-weight: 600; padding: 12px; transition: background 0.2s ease;">
                             📄 Download Manuscript PDF (4.9 MB)
                         </a>
-                        <a href="spaceflight-circadian-decoder.tar.gz" download class="nav-tab" style="text-align: center; border: 1px solid var(--border-color); color: var(--text-bright); text-decoration: none; display: block; border-radius: 8px; font-family: var(--font-title); font-weight: 600; background: rgba(236,72,153,0.05); border-color: rgba(236,72,153,0.2);">
+                        <a href="spaceflight-circadian-decoder.tar.gz" download class="portal-download-btn" style="text-align: center; border: 1px solid var(--border-color); color: var(--text-bright); text-decoration: none; display: block; border-radius: 8px; font-family: var(--font-title); font-weight: 600; background: rgba(236,72,153,0.05); border-color: rgba(236,72,153,0.2); padding: 12px; transition: background 0.2s ease, border-color 0.2s ease;">
                             📦 Download Full Data tar.gz (15.5 MB)
                         </a>
                     </div>
@@ -1352,8 +1376,9 @@
     // Navigation / Tabs Switching
     // ============================================================
     function switchTab(tabName) {
-        document.querySelectorAll('.nav-tab').forEach(btn => {
-            if(btn.getAttribute('onclick').includes(tabName)) {
+        document.querySelectorAll('.nav-tabs .nav-tab').forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick');
+            if(onclickAttr && onclickAttr.includes(tabName)) {
                 btn.classList.add('active');
             } else {
                 btn.classList.remove('active');
@@ -1926,6 +1951,64 @@
 
     // Trigger initial plot render
     updatePhasePlot();
+
+    // MutationObserver to detect CoSE theme changes and update Plotly charts dynamically
+    const themeObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'data-theme') {
+                const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+                updatePlotColorsForTheme(currentTheme);
+            }
+        });
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    function updatePlotColorsForTheme(theme) {
+        const isDark = theme === 'dark';
+        
+        // Update darkPlotTheme configuration
+        darkPlotTheme.font.color = isDark ? '#f3f4f6' : '#1a2230';
+        darkPlotTheme.xaxis.gridcolor = isDark ? '#1e2538' : '#e5e9f0';
+        darkPlotTheme.xaxis.zerolinecolor = isDark ? '#1e2538' : '#e5e9f0';
+        darkPlotTheme.xaxis.tickfont.color = isDark ? '#9ca3af' : '#5a6473';
+        darkPlotTheme.xaxis.titlefont.color = isDark ? '#f3f4f6' : '#1a2230';
+        
+        darkPlotTheme.yaxis.gridcolor = isDark ? '#1e2538' : '#e5e9f0';
+        darkPlotTheme.yaxis.zerolinecolor = isDark ? '#1e2538' : '#e5e9f0';
+        darkPlotTheme.yaxis.tickfont.color = isDark ? '#9ca3af' : '#5a6473';
+        darkPlotTheme.yaxis.titlefont.color = isDark ? '#f3f4f6' : '#1a2230';
+
+        // Re-render the active plot view
+        const activeTabPanel = document.querySelector('.tab-panel.active');
+        if (activeTabPanel && activeTabPanel.id === 'tab-dashboard') {
+            const dbView = document.getElementById('db-view-selector').value;
+            switchDashboardView(dbView);
+        }
+    }
+
+    // Automatically switch tabs when a hash link is clicked (e.g. from the CoSE document map sidebar)
+    function handleHashChange() {
+        const hash = window.location.hash;
+        if (!hash) return;
+        
+        const targetEl = document.querySelector(hash);
+        if (!targetEl) return;
+        
+        // Find if target is inside a tab-panel
+        const panel = targetEl.closest('.tab-panel');
+        if (panel) {
+            const tabName = panel.id.replace('tab-', '');
+            switchTab(tabName);
+        }
+    }
+    
+    window.addEventListener('hashchange', handleHashChange);
+    // Run once at load
+    setTimeout(handleHashChange, 150);
     </script>
+
+    <!-- CoSE Shared theme behaviour & project registry -->
+    <script src="https://dr-richard-barker.github.io/Plant_response_to_radiation/cose/sites.js"></script>
+    <script src="https://dr-richard-barker.github.io/Plant_response_to_radiation/cose/theme.js"></script>
 </body>
 </html>
