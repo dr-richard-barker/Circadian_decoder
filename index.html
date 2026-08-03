@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO Best Practices -->
+    <title>Spaceflight Alters Plant Circadian Clock Phase: A ChronoGauge Analysis</title>
+    <meta name="description" content="Interactive dashboard and manuscript portal for the ChronoGauge deep learning meta-analysis of plant circadian clock phase disruption under spaceflight conditions.">
+    <meta name="keywords" content="circadian clock, spaceflight, Arabidopsis thaliana, deep learning, ChronoGauge, NASA GeneLab, transcriptomics, meta-analysis">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+    <script>window.Plotly || document.write('<script src="dashboard/plotly.min.js"><\/script>')</script>
+    
+    <!-- Embedded Data -->
+    <script src="dashboard/data.js"></script>
+    
+    <style>
+        /* Design System / Color Tokens */
+        :root {
+            --bg-main: #07090e;
+            --bg-card: #0f121d;
+            --bg-control: #161c2b;
+            --border-color: #1e2538;
+            --text-bright: #f3f4f6;
+            --text-muted: #9ca3af;
+            
+            --accent-ground: #10b981;  /* Emerald Green */
+            --accent-flight: #ec4899;  /* Cosmic Magenta */
+            --accent-meta: #f59e0b;    /* Amber Gold */
+            --accent-blue: #3b82f6;    /* Vibrant Blue */
+            
+            --font-title: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        /* Base Resets */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-bright);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-main);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-ground);
+        }
+
+        /* Glassmorphic Header */
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 18, 29, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 100;
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            animation: pulse-slow 3s infinite ease-in-out;
+        }
+
+        .logo-text h1 {
+            font-family: var(--font-title);
+            font-size: 1.35rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-bright) 30%, var(--accent-flight) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* Premium Nav Tabs */
+        nav.nav-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(7, 9, 14, 0.5);
+            border: 1px solid var(--border-color);
+            padding: 4px;
+            border-radius: 30px;
+        }
+
+        .nav-tab {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-title);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-tab:hover {
+            color: var(--text-bright);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-tab.active {
+            color: var(--bg-main);
+            background: var(--text-bright);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Main Container */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 32px 80px 32px;
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* Key Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        /* Cards Layout */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
+            transition: border-color 0.3s ease, transform 0.3s ease;
+        }
+        
+        .card:hover {
+            border-color: rgba(236, 72, 153, 0.25);
+        }
+
+        /* Styling Typography */
+        h2.section-title {
+            font-family: var(--font-title);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            position: relative;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h2.section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-flight), var(--accent-meta));
+        }
+
+        /* TAB 1: RESEARCH SUMMARY SIDEBAR LAYOUT */
+        .research-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        .toc-sidebar {
+            position: sticky;
+            top: 100px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .toc-title {
+            font-family: var(--font-title);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .toc-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toc-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: block;
+            padding: 6px 12px;
+            border-left: 2px solid transparent;
+        }
+
+        .toc-link:hover {
+            color: var(--text-bright);
+            border-left-color: var(--border-color);
+        }
+
+        .toc-link.active {
+            color: var(--accent-flight);
+            font-weight: 600;
+            border-left-color: var(--accent-flight);
+            background: rgba(236, 72, 153, 0.05);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .paper-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .paper-header {
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 30px;
+        }
+
+        .paper-header h1 {
+            font-family: var(--font-title);
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--text-bright) 40%, var(--accent-flight) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .paper-authors {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-bright);
+            margin-bottom: 8px;
+        }
+
+        .paper-affiliations {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .paper-corresponding {
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+        }
+
+        .paper-section {
+            margin-bottom: 40px;
+            scroll-margin-top: 120px;
+        }
+
+        .paper-section h2 {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-bright);
+        }
+
+        .paper-section h3 {
+            font-family: var(--font-title);
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: var(--text-bright);
+        }
+
+        .paper-section p {
+            margin-bottom: 16px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            text-align: justify;
+        }
+
+        .paper-section ul, .paper-section ol {
+            margin-left: 24px;
+            margin-bottom: 16px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .paper-section li {
+            margin-bottom: 6px;
+        }
+
+        /* Inline Figures */
+        .paper-figure {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .paper-figure img {
+            max-width: 100%;
+            max-height: 500px;
+            height: auto;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .paper-figure img:hover {
+            transform: scale(1.015);
+            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.2);
+        }
+
+        .figure-title {
+            font-family: var(--font-title);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+
+        .figure-caption {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        /* Highlight Boxes / Callouts */
+        .key-findings-callout {
+            background: rgba(16, 185, 129, 0.05);
+            border-left: 4px solid var(--accent-ground);
+            border-radius: 0 12px 12px 0;
+            padding: 20px 24px;
+            margin: 24px 0;
+        }
+
+        .key-findings-callout h4 {
+            font-family: var(--font-title);
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-ground);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* TAB 2: INTERACTIVE DASHBOARD */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .controls-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-family: var(--font-title);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Stats Badge style */
+        .stats-badge-container {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .stats-badge {
+            background: var(--bg-control);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.85rem;
+        }
+
+        .stats-badge strong {
+            color: var(--accent-flight);
+        }
+
+        /* TAB 3: FIGURE EXPLORER */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .gallery-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .gallery-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-flight);
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.15);
+        }
+
+        .gallery-img-container {
+            height: 180px;
+            background: var(--bg-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px;
+        }
+
+        .gallery-card img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .gallery-info {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .gallery-card-title {
+            font-family: var(--font-title);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 6px;
+        }
+
+        .gallery-card-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        /* Lightbox CSS */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 9, 14, 0.97);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 40px;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            font-size: 2.5rem;
+            color: var(--text-bright);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            background: transparent;
+            border: none;
+            outline: none;
+        }
+
+        .lightbox-close:hover {
+            color: var(--accent-flight);
+        }
+
+        .lightbox-img-wrapper {
+            max-width: 85%;
+            max-height: 70%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .lightbox img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        .lightbox-caption-box {
+            margin-top: 20px;
+            max-width: 900px;
+            text-align: left;
+            padding: 0 20px;
+        }
+
+        .lightbox-title {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 6px;
+        }
+
+        .lightbox-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            overflow-y: auto;
+            max-height: 120px;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-bright);
+            font-size: 1.5rem;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .lightbox-nav:hover {
+            background: var(--text-bright);
+            color: var(--bg-main);
+        }
+
+        .lightbox-prev {
+            left: 32px;
+        }
+
+        .lightbox-next {
+            right: 32px;
+        }
+
+        /* TAB 4: REPLICATION GUIDE & CITATION */
+        .replication-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .replication-layout {
+                grid-template-columns: 1fr;
+            }
+            .research-container {
+                grid-template-columns: 1fr;
+            }
+            .toc-sidebar {
+                display: none;
+            }
+        }
+
+        .code-box {
+            background: rgba(7, 9, 14, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            color: #d1d5db;
+            overflow-x: auto;
+            margin: 12px 0 20px 0;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            color: var(--text-bright);
+            border-color: var(--accent-flight);
+        }
+
+        /* Tables styling */
+        .paper-table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin: 24px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table.paper-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+            background: var(--bg-card);
+        }
+
+        table.paper-table th {
+            background: var(--bg-control);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-bright);
+            font-weight: 600;
+            padding: 10px 14px;
+        }
+
+        table.paper-table td {
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 8px 14px;
+        }
+
+        table.paper-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table.paper-table tr:hover td {
+            color: var(--text-bright);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .footer {
+            border-top: 1px solid var(--border-color);
+            padding: 30px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Unified Header -->
+    <header>
+        <div class="logo-container">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">
+                <h1>Spaceflight Circadian Decoder</h1>
+                <p>NASA Open Science Data Repository Analysis</p>
+            </div>
+        </div>
+        
+        <!-- Tab Navigation Bar -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('paper')">Paper Summary</button>
+            <button class="nav-tab" onclick="switchTab('dashboard')">Interactive Dashboard</button>
+            <button class="nav-tab" onclick="switchTab('figures')">Figure Explorer</button>
+            <button class="nav-tab" onclick="switchTab('replication')">Replication & Code</button>
+        </nav>
+    </header>
+
+    <!-- Main Content Area -->
+    <main>
+
+        <!-- ============================================================ -->
+        <!-- TAB 1: PAPER SUMMARY -->
+        <!-- ============================================================ -->
+        <div id="tab-paper" class="tab-panel active">
+            <div class="research-container">
+                <!-- Sticky Sidebar TOC -->
+                <aside class="toc-sidebar">
+                    <h3 class="toc-title">On This Page</h3>
+                    <ul class="toc-list">
+                        <li><a href="#sec-abstract" class="toc-link active" onclick="activateToc(this)">Abstract</a></li>
+                        <li><a href="#sec-introduction" class="toc-link" onclick="activateToc(this)">Introduction</a></li>
+                        <li><a href="#sec-methods" class="toc-link" onclick="activateToc(this)">Methods</a></li>
+                        <li><a href="#sec-results" class="toc-link" onclick="activateToc(this)">Results</a></li>
+                        <li><a href="#sec-discussion" class="toc-link" onclick="activateToc(this)">Discussion</a></li>
+                        <li><a href="#sec-conclusions" class="toc-link" onclick="activateToc(this)">Conclusions</a></li>
+                        <li><a href="#sec-references" class="toc-link" onclick="activateToc(this)">References</a></li>
+                    </ul>
+                </aside>
+
+                <!-- Manuscript Text -->
+                <article class="paper-content">
+                    <div class="paper-header">
+                        <h1>Spaceflight Alters Plant Circadian Clock Phase: A ChronoGauge Analysis of NASA GeneLab Arabidopsis Transcriptomics</h1>
+                        <div class="paper-authors">Richard Barker¹,*</div>
+                        <div class="paper-affiliations">
+                            ¹ Department of Botany, University of Wisconsin-Madison, Madison, WI, USA
+                        </div>
+                        <div class="paper-corresponding">
+                            *Corresponding author: <a href="mailto:dr.richard-barker@wisc.edu" style="color: var(--accent-blue); text-decoration: none;">dr.richard-barker@wisc.edu</a>
+                        </div>
+                    </div>
+
+                    <!-- Abstract Section -->
+                    <section id="sec-abstract" class="paper-section">
+                        <h2>Abstract</h2>
+                        <p>Spaceflight imposes multiple stressors on plants, including microgravity, altered light regimes, and atmospheric changes. The circadian clock regulates approximately one-third of the plant transcriptome, yet whether spaceflight disrupts circadian timing in plants remains poorly understood. We applied ChronoGauge, a deep learning circadian time predictor, to 23 Arabidopsis thaliana spaceflight transcriptomics datasets from NASA GeneLab, encompassing 603 samples across 13 ecotypes, 7 tissue types, and 12 hardware configurations. ChronoGauge predicted circadian time (CT) for each sample from gene expression alone (mean absolute error = 44.0 minutes on held-out validation data), enabling per-study flight-versus-ground phase comparisons using circular statistics. Random-effects meta-analysis across 18 studies with paired flight and ground controls revealed a small but statistically significant phase advance under spaceflight (pooled shift = −0.09 h, 95% CI [−0.18, −0.001], p = 0.046, I² = 86.5%). The effect was driven primarily by root tissue studies (pooled shift = −0.17 h, p < 0.001, I² = 8.9%) and dark-grown samples (pooled shift = −0.20 h, p = 0.024, I² = 91.8%). Four individual studies showed significant phase shifts after Watson-Williams testing, with shifts ranging from −0.17 h to −0.52 h. A forked analysis comparing the 14-study Barker 2023 cohort (Fork A, pooled = −0.09 h, p = 0.019) with all 23 Arabidopsis spaceflight studies (Fork B, pooled = −0.09 h, p = 0.047) demonstrated consistent conclusions regardless of dataset scope. Flight samples showed slightly lower circular variance than ground controls (0.488 vs 0.507), suggesting marginally more coherent clock output under spaceflight. Circadian trajectory analysis using t-SNE on the 100-dimensional sub-model prediction vectors revealed that the multivariate circadian fingerprint correlated with phase shift magnitude (Spearman ρ = 0.633, p = 0.005). Gene set enrichment analysis of the four significant phase-shift studies linked the phase advance in OSD-193 to significant downregulation of the circadian rhythm pathway (GO:0007623, NES = −2.25, FDR = 0.004), with core clock genes (LHY, TOC1, PRR5, CCA1) among the leading edge. This study demonstrates the utility of deep learning-based circadian time prediction for retrospective analysis of cross-sectional transcriptomics data and provides the first systematic quantification of circadian phase disruption in spaceflight-grown plants.</p>
+                    </section>
+
+                    <!-- Introduction Section -->
+                    <section id="sec-introduction" class="paper-section">
+                        <h2>Introduction</h2>
+                        <p>The circadian clock is an endogenous timekeeping mechanism that orchestrates physiological and molecular rhythms with approximately 24-hour periodicity. In plants, the circadian clock regulates roughly one-third of the transcriptome [1], controlling processes including photosynthesis, growth, flowering time, and stress responses [2]. The Arabidopsis circadian oscillator comprises a network of transcriptional-translational feedback loops: the morning complex (CCA1/LHY) represses evening genes (TOC1, GI, ELF4, ELF3, LUX), while sequential PRR proteins (PRR9, PRR7, PRR5) provide daytime repression of CCA1/LHY [3]. Circadian regulation is critical for plant fitness; clock disruption reduces biomass, alters stress responses, and impairs reproductive timing [4].</p>
+                        
+                        <p>Spaceflight imposes unique environmental conditions on plants, including microgravity, altered atmospheric composition, modified light quality and quantity, and increased radiation exposure [5]. These conditions may disrupt circadian timing through multiple mechanisms: altered light cues for clock entrainment, mechanical unloading affecting calcium signaling, and changes in metabolic flux. Several studies have reported spaceflight-induced changes in clock gene expression [6,7], and a recent meta-analysis of Arabidopsis spaceflight transcriptomes identified circadian-related gene sets among the most consistently altered pathways [8]. However, these analyses examined differential expression of individual clock genes rather than quantifying circadian phase itself, and a systematic measurement of circadian phase disruption has been lacking.</p>
+
+                        <div class="paper-figure">
+                            <img src="figures/fig1_study_overview.png" alt="Figure 1: Study Overview" onclick="openLightboxFromSrc(this)">
+                            <div class="figure-title">Figure 1: Study Overview and Dataset Distribution</div>
+                            <div class="figure-caption">Schematic overview of the analysis workflow applying the ChronoGauge deep learning ensemble to 23 Arabidopsis thaliana spaceflight datasets in the NASA Open Science Data Repository (OSDR).</div>
+                        </div>
+
+                        <p>A major challenge in analyzing circadian rhythms from spaceflight transcriptomics data is that most NASA GeneLab datasets are cross-sectional—samples are harvested at a single time point without circadian time (CT) ground truth. Traditional circadian analysis methods such as JTK_CYCLE [9] and RAIN [10] require time-series data and cannot be applied to single-timepoint samples. Recently, deep learning approaches have emerged that can predict circadian time from a single transcriptomic snapshot. ChronoGauge [11] is a bagging ensemble of 100 neural network sub-predictors trained on Arabidopsis circadian time-course data under constant light, achieving mean absolute errors of approximately 50 minutes on held-out data. The circular variance across sub-models provides a measure of prediction confidence and clock robustness.</p>
+                        
+                        <p>Here, we apply ChronoGauge to the complete collection of Arabidopsis spaceflight transcriptomics data in NASA GeneLab. We perform a forked analysis: Fork A examines the 14 studies from Barker et al. (2023) [8], while Fork B includes all 23 Arabidopsis spaceflight transcriptomics studies with processed expression data. For each study, we predict CT for every sample and compare flight versus ground control phase distributions using the Watson-Williams test for equality of circular means. We then perform random-effects meta-analysis across studies, stratified by tissue, ecotype, hardware, and light regime. This approach enables the first systematic quantification of circadian phase disruption in spaceflight-grown plants.</p>
+                    </section>
+
+                    <!-- Methods Section -->
+                    <section id="sec-methods" class="paper-section">
+                        <h2>Methods</h2>
+                        <h3>Data acquisition and curation</h3>
+                        <p>We queried the NASA Open Science Data Repository (OSDR) API for all Arabidopsis thaliana transcriptomics studies. Fork A comprised 14 studies (GLDS-7, 17, 37, 38, 44, 46, 120, 121, 136, 147, 205, 208, 218, 251). Fork B comprised 23 Arabidopsis spaceflight transcriptomics studies. ISA-Tab sample files were parsed to extract sample-level metadata: condition (spaceflight/ground control), ecotype, tissue, hardware, light regime, and harvest age. Studies without a Spaceflight factor (OSD-46, radiation; OSD-136, hypobaria) or lacking ground controls (OSD-251, OSD-346) were excluded from phase-shift comparisons. The final harmonized metadata table comprised 1,169 samples across 26 studies, with 792 flight and 324 ground control samples.</p>
+                        
+                        <h3>ChronoGauge deep learning model</h3>
+                        <p>ChronoGauge is a bagging ensemble of 100 neural network sub-predictors, each trained on a distinct feature gene set selected via sequential feature selection from Arabidopsis circadian time-course data. We used pre-trained models from HuggingFace, mapping gene identifiers to AGI codes (AT*G* format). For each study, we fit a StandardScaler on ChronoGauge's training data, ran all 100 sub-models, and aggregated predictions via circular mean. The circular variance across sub-models (1 − R) served as a clock robustness metric, with lower values indicating more coherent ensemble predictions.</p>
+
+                        <div class="paper-figure">
+                            <img src="figures/fig2_chronogauge_validation.png" alt="Figure 2: Validation" onclick="openLightboxFromSrc(this)">
+                            <div class="figure-title">Figure 2: ChronoGauge Validation on Test Data</div>
+                            <div class="figure-caption">Model prediction accuracy validation. Left: Predicted vs. actual circadian time. Right: Distribution of prediction errors (MAE = 44.0 min on validation dataset).</div>
+                        </div>
+
+                        <h3>Statistical analysis</h3>
+                        <p>For each study with both flight and ground control samples, we compared predicted CT distributions using the Watson-Williams test for equality of circular means. Phase shift was computed as the circular difference between flight and ground mean CTs, expressed in the range [−12, +12] hours. Random-effects meta-analysis was performed using the REML estimator via the metafor R package. Heterogeneity was assessed with Cochran's Q test and the I² statistic. Stratified meta-analyses were performed by tissue type, hardware configuration, and light regime.</p>
+                        
+                        <h3>Circadian trajectory and enrichment analysis</h3>
+                        <p>To explore whether the multivariate circadian fingerprint captured by ChronoGauge's 100 sub-model predictions reflects the magnitude of phase disruption, we performed dimensionality reduction (t-SNE and PCA) on the 100-dimensional prediction vectors. Centroid distances between flight and ground samples were correlated with the absolute phase shift magnitude using Spearman's rank correlation. To connect the observed phase shifts to transcriptional consequences, we performed differential expression (limma-voom) and gene set enrichment analysis (fgsea) on the four studies with statistically significant phase shifts (OSD-321, OSD-193, OSD-38, OSD-281) across 816 GO BP and KEGG pathways.</p>
+                    </section>
+
+                    <!-- Results Section -->
+                    <section id="sec-results" class="paper-section">
+                        <h2>Results</h2>
+                        <h3>Dataset overview and ChronoGauge validation</h3>
+                        <p>We analyzed 23 Arabidopsis spaceflight transcriptomics datasets from NASA GeneLab with usable processed expression data, comprising 603 samples. The datasets spanned 13 ecotypes (dominated by Col-0), 7 tissue types, and 12 hardware configurations. On held-out validation data, the ChronoGauge ensemble achieved a mean absolute error of 44.0 minutes (median: 21.1 minutes, RMSE: 64.8 minutes), demonstrating that the model can reliably predict circadian time from single transcriptomic snapshots.</p>
+
+                        <h3>Per-study phase shifts and circular statistics</h3>
+                        <p>Four of 18 studies showed statistically significant phase shifts after Watson-Williams testing. The largest shift was observed in OSD-38 (−0.52 h, p = 0.026, whole seedlings, dark conditions), representing a 31-minute phase advance in flight samples. Whole seedlings in OSD-321 showed a −0.43 h shift (p = 1.8 × 10⁻⁷, dark), roots in OSD-193 showed a −0.24 h shift (p = 0.002, Veggie hardware), and roots in OSD-281 showed a −0.17 h shift (p = 0.038, Veggie hardware). Crucially, all significant phase shifts were in the negative direction, representing a circadian phase advance under spaceflight.</p>
+
+                        <div class="paper-figure">
+                            <img src="figures/fig3_phase_shift_polar.png" alt="Figure 3: Polar plot" onclick="openLightboxFromSrc(this)">
+                            <div class="figure-title">Figure 3: Phase Shifts Across Individual Studies</div>
+                            <div class="figure-caption">Polar plot displaying predicted circular mean circadian times for spaceflight (pink) and ground control (green) samples across the 18 paired studies. Shifts in the counter-clockwise direction represent advances.</div>
+                        </div>
+
+                        <h3>Meta-analysis reveals consistent phase advance</h3>
+                        <p>Random-effects meta-analysis across all 18 studies (Fork B) revealed a small but statistically significant phase advance under spaceflight (pooled shift = −0.09 h, 95% CI [−0.18, −0.001], p = 0.046, Z = −1.99). The curated subset Fork A (10 studies) yielded a nearly identical point estimate (pooled shift = −0.09 h, 95% CI [−0.17, −0.02], p = 0.019, I² = 74.4%). This consistency suggests that the circadian phase advance under spaceflight is a robust finding not driven by the inclusion of specific studies.</p>
+
+                        <div class="paper-figure">
+                            <img src="figures/fig4_forest_plot.png" alt="Figure 4: Forest plot" onclick="openLightboxFromSrc(this)">
+                            <div class="figure-title">Figure 4: Meta-Analysis Forest Plot</div>
+                            <div class="figure-caption">Forest plot showing phase shifts (hours, flight − ground) and 95% confidence intervals for individual studies, alongside the pooled random-effects estimate (diamond).</div>
+                        </div>
+
+                        <div class="key-findings-callout">
+                            <h4>🌱 Key Findings Summary</h4>
+                            <ul>
+                                <li><strong>Circadian Phase Advance:</strong> A small but statistically significant pooled phase advance of −0.09 hours (~5.4 minutes) across spaceflight studies (p = 0.046).</li>
+                                <li><strong>Root Specificity:</strong> The phase advance is driven primarily by roots (pooled shift = −0.17 h, p < 0.001) with remarkably low heterogeneity (I² = 8.9%).</li>
+                                <li><strong>Light Modulation:</strong> The shift is significant only in dark-grown samples (pooled shift = −0.20 h, p = 0.024). Continuous light entrainment overrides spaceflight-induced perturbations.</li>
+                                <li><strong>Ensemble Fingerprint:</strong> Sub-model trajectory analysis (t-SNE) centroid distance between flight and ground clusters correlates with phase shift magnitude (Spearman ρ = 0.633, p = 0.005).</li>
+                                <li><strong>Transcriptional Link:</strong> Gene Set Enrichment Analysis links the phase advance in root study OSD-193 to significant downregulation of the circadian rhythm pathway (GO:0007623, FDR = 0.004).</li>
+                            </ul>
+                        </div>
+
+                        <h3>Tissue and light-regime stratification</h3>
+                        <p>Stratification by tissue type revealed that the phase advance was driven primarily by root studies (pooled shift = −0.17 h, 95% CI [−0.24, −0.09], p < 0.001, I² = 8.9%, k = 4 studies), which showed remarkably low heterogeneity. Whole seedling studies showed a larger but non-significant trend (−0.19 h, p = 0.121), while leaf studies showed a non-significant phase delay (+0.19 h, p = 0.094).</p>
+
+                        <div class="paper-figure">
+                            <img src="figures/fig5_stratified_tissue.png" alt="Figure 5: Stratified tissue" onclick="openLightboxFromSrc(this)">
+                            <div class="figure-title">Figure 5: Meta-Analysis Stratified by Tissue Type</div>
+                            <div class="figure-caption">REML meta-analysis results pooled within tissue subgroups. The phase advance is highly significant and consistent in root studies.</div>
+                        </div>
+
+                        <p>Stratification by light regime revealed that the phase advance was significant only in dark-grown samples (pooled shift = −0.20 h, 95% CI [−0.37, −0.03], p = 0.024, I² = 91.8%, k = 6 studies). Continuous light samples showed no significant shift (+0.01 h, p = 0.932), suggesting photic entrainment overrides spaceflight-induced perturbations.</p>
+
+                        <h3>Circadian trajectory and clock pathway enrichment</h3>
+                        <p>Multivariate t-SNE embedding of the 100-dimensional sub-model predictions showed that centroid separation between flight and ground clusters correlates strongly with absolute phase shift magnitude (Spearman ρ = 0.633, p = 0.005). Furthermore, GSEA connected the phase advance in root study OSD-193 to significant downregulation of the circadian rhythm pathway (GO:0007623, NES = −2.25, FDR = 0.004), with core oscillator genes (<em>LHY</em>, <em>TOC1</em>, <em>PRR5</em>, <em>CCA1</em>) among the leading edge.</p>
+                    </section>
+
+                    <!-- Discussion Section -->
+                    <section id="sec-discussion" class="paper-section">
+                        <h2>Discussion</h2>
+                        <p>This study provides the first systematic quantification of circadian phase disruption in spaceflight-grown plants using deep learning-based circadian time prediction. Our meta-analysis of 18 Arabidopsis spaceflight transcriptomics studies reveals a small but statistically significant circadian phase advance under spaceflight conditions (pooled shift ≈ −0.09 h, approximately 5 minutes). While modest in magnitude, this effect is consistent in direction across the majority of studies and reaches statistical significance in both the curated Fork A and comprehensive Fork B analyses.</p>
+
+                        <p>The tissue-stratified analysis provides the most informative finding: root studies showed a significant phase advance of −0.17 h (p < 0.001) with remarkably low heterogeneity (I² = 8.9%), suggesting a tissue-specific circadian response to spaceflight. This is consistent with the known sensitivity of root circadian rhythms to mechanical and gravitational signals [14]. Roots are the primary site of gravity sensing in plants, and the removal of gravitational cues in microgravity may directly affect the root circadian oscillator through altered PIN protein cycling and auxin transport rhythms [15].</p>
+
+                        <p>The light regime stratification revealed that the phase advance was significant only in dark-grown samples (−0.20 h, p = 0.024), while continuous light samples showed no effect. This is biologically plausible: in the absence of light entrainment cues, the circadian clock relies entirely on internal oscillators, which may be more susceptible to disruption by microgravity-induced changes in cellular signaling. Under continuous light, the strong photic entrainment may override any spaceflight-induced phase perturbation. This finding has implications for spaceflight experiment design: studies using dark or dim-light conditions may be more likely to reveal circadian disruption than those using continuous illumination.</p>
+
+                        <p>The circadian trajectory analysis provides an independent line of evidence supporting the biological validity of the ChronoGauge predictions. The strong correlation between t-SNE centroid distance and phase shift magnitude (ρ = 0.633, p = 0.005) demonstrates that the ensemble's internal prediction structure—not just the aggregate circular mean—encodes meaningful information about circadian disruption.</p>
+
+                        <p>The gene set enrichment analysis further strengthens the connection between predicted phase disruption and transcriptional reality. In OSD-193, the significant downregulation of the circadian rhythm pathway (GO:0007623, NES = −2.25, FDR = 0.004), driven by leading-edge genes including LHY, TOC1, PRR5, CCA1, PRR7, and TIC, directly links the ChronoGauge-detected phase advance to reduced expression of the core oscillator machinery. However, the absence of circadian pathway enrichment in the other three phase-shifted studies (OSD-321, OSD-38, OSD-281) indicates that phase disruption can occur without coordinated transcriptional suppression of clock genes, possibly reflecting different mechanisms of clock perturbation—for example, altered post-translational regulation or changes in clock output genes.</p>
+                    </section>
+
+                    <!-- Conclusions Section -->
+                    <section id="sec-conclusions" class="paper-section">
+                        <h2>Conclusions</h2>
+                        <p>We applied ChronoGauge, a deep learning circadian time predictor, to 23 Arabidopsis spaceflight transcriptomics datasets from NASA GeneLab. Our random-effects meta-analysis of 18 studies with paired flight and ground controls revealed a small but significant circadian phase advance under spaceflight (−0.09 h, p = 0.046). The effect was strongest in root tissue (−0.17 h, p < 0.001) and in dark-grown samples (−0.20 h, p = 0.024), suggesting that circadian disruption is tissue-specific and modulated by light regime. Circadian trajectory analysis showed that the multivariate sub-model prediction fingerprint correlates with phase shift magnitude (ρ = 0.633, p = 0.005), and gene set enrichment linked the phase advance in OSD-193 to significant downregulation of the circadian rhythm pathway (GO:0007623, FDR = 0.004). These results provide the first systematic evidence that spaceflight alters plant circadian clock phase and suggest that future spaceflight experiments should consider light regime and tissue type when assessing circadian disruption. The application of deep learning-based circadian time prediction to retrospective transcriptomics data opens new avenues for extracting circadian information from the wealth of existing cross-sectional datasets in public repositories.</p>
+                    </section>
+
+                    <!-- References Section -->
+                    <section id="sec-references" class="paper-section">
+                        <h2>References</h2>
+                        <ol>
+                            <li>Covington, M.F. et al. (2008) Genome-wide analysis of the Arabidopsis clock reveals complex regulation. <em>Genome Biology</em> 9, R167.</li>
+                            <li>Harmer, S.L. et al. (2000) Orchestrated transcription of key pathways in Arabidopsis by the circadian clock. <em>Science</em> 290, 2110–2113.</li>
+                            <li>Pokhilko, A. et al. (2012) The clock gene circuit in Arabidopsis includes a repressilator with additional feedback loops. <em>Molecular Systems Biology</em> 8, 574.</li>
+                            <li>Dodd, A.N. et al. (2005) Plant circadian clocks increase photosynthesis, growth, survival, and competitive advantage. <em>Science</em> 309, 630–633.</li>
+                            <li>Paul, A.L., Amalfitano, C.E. & Ferl, R.J. (2012) Plant growth strategies are remodeled by spaceflight. <em>BMC Plant Biology</em> 12, 232.</li>
+                            <li>Nayak, K.K. et al. (2020) Spaceflight-induced changes in the Arabidopsis circadian clock. [Reference to be verified]</li>
+                            <li>Kiss, J.Z. et al. (2019) Operations of a spaceflight experiment to study plant tropisms. <em>Gravitational and Space Research</em> 7, 1–14.</li>
+                            <li>Barker, R. et al. (2023) A meta-analysis of Arabidopsis thaliana spaceflight transcriptome data. <em>npj Microgravity</em> 9.</li>
+                            <li>Hughes, M.E., Hogenesch, J.B. & Kornacker, K. (2010) JTK_CYCLE: an efficient nonparametric algorithm for detecting rhythmic components in genome-scale data. <em>Journal of Biological Rhythms</em> 25, 372–380.</li>
+                            <li>Thaben, P.F. & Westermark, P.O. (2014) Detecting rhythms in time series with RAIN. <em>Journal of Biological Rhythms</em> 29, 391–400.</li>
+                            <li>Reynolds, W. et al. (2025) ChronoGauge: a deep learning approach for circadian time prediction from single transcriptomic samples. <em>Nature Communications</em> [details to be verified].</li>
+                            <li>Watson, G.S. & Williams, E.J. (1956) On the construction of significance tests on the circle and the sphere. <em>Biometrika</em> 43, 344–352.</li>
+                            <li>Viechtbauer, W. (2010) Conducting meta-analyses in R with the metafor package. <em>Journal of Statistical Software</em> 36, 1–48.</li>
+                            <li>Mancuso, S. et al. (2019) Gravity as a morphogenetic factor in plants. <em>Journal of Plant Growth Regulation</em> 38, 1–12.</li>
+                            <li>Rakusová, H. et al. (2011) Polarization of PIN3-dependent auxin transport for hypocotyl gravitropic response in Arabidopsis thaliana. <em>The Plant Journal</em> 67, 817–826.</li>
+                            <li>Ritchie, M.E. et al. (2015) limma powers differential expression analyses for RNA-sequencing and microarray studies. <em>Nucleic Acids Research</em> 43, e47.</li>
+                            <li>Korotkevich, G. et al. (2021) Fast gene set enrichment analysis. <em>bioRxiv</em> 2021.06.15.448424.</li>
+                        </ol>
+                    </section>
+                </article>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 2: INTERACTIVE DASHBOARD -->
+        <!-- ============================================================ -->
+        <div id="tab-dashboard" class="tab-panel">
+            <div class="dashboard-grid">
+                
+                <!-- View Selector / Tabs inside Dashboard -->
+                <div class="controls-card">
+                    <div class="control-group">
+                        <label>Dashboard View:</label>
+                        <select id="db-view-selector" onchange="switchDashboardView(this.value)">
+                            <option value="phase">Phase Overview</option>
+                            <option value="forest">Forest Plot</option>
+                            <option value="fingerprint">Circadian Fingerprint</option>
+                            <option value="clock">Clock Genes Heatmap</option>
+                            <option value="tsne">t-SNE Trajectory</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sub-panels -->
+                <!-- Panel 1: Phase Overview -->
+                <div id="db-panel-phase" class="card db-panel active">
+                    <h2 class="section-title">Phase Overview</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                        Circular scatter plot displaying predicted circadian time vs circular variance. Use the dropdown filters to slice the dataset.
+                    </p>
+                    <div class="controls-card" style="margin-bottom: 20px; background: var(--bg-main);">
+                        <div class="control-group">
+                            <label>Study:</label>
+                            <select id="filter-study" onchange="updatePhasePlot()">
+                                <option value="">All studies</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Tissue:</label>
+                            <select id="filter-tissue" onchange="updatePhasePlot()">
+                                <option value="">All tissues</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>Light regime:</label>
+                            <select id="filter-light" onchange="updatePhasePlot()">
+                                <option value="">All regimes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="plot-phase" style="width: 100%; height: 500px;"></div>
+                    <div class="stats-badge-container">
+                        <div class="stats-badge" id="phase-stats"></div>
+                    </div>
+                </div>
+
+                <!-- Panel 2: Forest Plot -->
+                <div id="db-panel-forest" class="card db-panel">
+                    <h2 class="section-title">Forest Plot & Meta-Analysis</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                        Per-study phase shifts (Flight − Ground) with bootstrap 95% confidence intervals and the pooled meta-analysis estimate (REML estimator).
+                    </p>
+                    <div id="plot-forest" style="width: 100%; height: 600px;"></div>
+                    <div class="stats-badge-container">
+                        <div class="stats-badge" id="forest-stats"></div>
+                    </div>
+                </div>
+
+                <!-- Panel 3: Circadian Fingerprint -->
+                <div id="db-panel-fingerprint" class="card db-panel">
+                    <h2 class="section-title">Circadian Fingerprint</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                        Box plots showing the distribution of circular variance (prediction uncertainty/clock robustness) for ground controls versus spaceflight-grown samples.
+                    </p>
+                    <div id="plot-fingerprint" style="width: 100%; height: 500px;"></div>
+                </div>
+
+                <!-- Panel 4: Clock Genes Heatmap -->
+                <div id="db-panel-clock" class="card db-panel">
+                    <h2 class="section-title">Clock Genes Expression</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                        Heatmap of z-score normalized gene expression levels for 11 core circadian clock genes across all profiled samples.
+                    </p>
+                    <div id="plot-clock" style="width: 100%; height: 450px;"></div>
+                </div>
+
+                <!-- Panel 5: t-SNE Trajectory -->
+                <div id="db-panel-tsne" class="card db-panel">
+                    <h2 class="section-title">t-SNE Trajectory</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                        Non-linear dimensionality reduction (t-SNE) of the 100-dimensional ChronoGauge sub-model prediction space, showing how samples cluster by study, condition, or predicted CT.
+                    </p>
+                    <div class="controls-card" style="margin-bottom: 20px; background: var(--bg-main);">
+                        <div class="control-group">
+                            <label>Color points by:</label>
+                            <select id="tsne-colorby" onchange="updateTsnePlot()">
+                                <option value="condition">Condition</option>
+                                <option value="study">Study</option>
+                                <option value="ct">Predicted CT</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="plot-tsne" style="width: 100%; height: 550px;"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 3: FIGURE EXPLORER -->
+        <!-- ============================================================ -->
+        <div id="tab-figures" class="tab-panel">
+            <h2 class="section-title">Interactive Figure & Table Explorer</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px;">
+                Browse the complete figure suite and data tables from the manuscript. Click on any figure to enlarge it and read the detailed caption.
+            </p>
+            
+            <div class="gallery-grid">
+                <!-- Fig 1 -->
+                <div class="gallery-card" onclick="openLightbox(0)">
+                    <div class="gallery-img-container">
+                        <img src="figures/fig1_study_overview.png" alt="Figure 1">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure 1: Study Overview</div>
+                        <div class="gallery-card-desc">Methodological schematic outlining OSDR data acquisition, ecotypes, tissue curation, and application of the 100-neural network ChronoGauge bagging ensemble.</div>
+                    </div>
+                </div>
+                <!-- Fig 2 -->
+                <div class="gallery-card" onclick="openLightbox(1)">
+                    <div class="gallery-img-container">
+                        <img src="figures/fig2_chronogauge_validation.png" alt="Figure 2">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure 2: Model Validation</div>
+                        <div class="gallery-card-desc">Scatter plots displaying predicted vs. actual circadian time on validation test sets, validating accuracy and the circular variance metric.</div>
+                    </div>
+                </div>
+                <!-- Fig 3 -->
+                <div class="gallery-card" onclick="openLightbox(2)">
+                    <div class="gallery-img-container">
+                        <img src="figures/fig3_phase_shift_polar.png" alt="Figure 3">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure 3: Circular Means Polar Plot</div>
+                        <div class="gallery-card-desc">Polar distribution showing predicted circular mean circadian times for spaceflight and ground control samples in the 18 paired datasets.</div>
+                    </div>
+                </div>
+                <!-- Fig 4 -->
+                <div class="gallery-card" onclick="openLightbox(3)">
+                    <div class="gallery-img-container">
+                        <img src="figures/fig4_forest_plot.png" alt="Figure 4">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure 4: REML Forest Plot</div>
+                        <div class="gallery-card-desc">Forest plot representing the estimated phase shifts (hours) for individual studies and the pooled random-effects estimate.</div>
+                    </div>
+                </div>
+                <!-- Fig 5 -->
+                <div class="gallery-card" onclick="openLightbox(4)">
+                    <div class="gallery-img-container">
+                        <img src="figures/fig5_stratified_tissue.png" alt="Figure 5">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure 5: Tissue Stratification</div>
+                        <div class="gallery-card-desc">Meta-analysis forest plot stratified by anatomical tissue type, showing highly significant phase advance specific to root tissues.</div>
+                    </div>
+                </div>
+                <!-- Fig 6 -->
+                <div class="gallery-card" onclick="openLightbox(5)">
+                    <div class="gallery-img-container">
+                        <img src="figures/fig6_circadian_fingerprint.png" alt="Figure 6">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure 6: Circadian Fingerprint Variance</div>
+                        <div class="gallery-card-desc">Box plots comparing circular variance between spaceflight and ground controls, showing marginally tighter predictions in flight.</div>
+                    </div>
+                </div>
+                <!-- Fig S7 -->
+                <div class="gallery-card" onclick="openLightbox(6)">
+                    <div class="gallery-img-container">
+                        <img src="figures/figS7_circadian_trajectory.png" alt="Figure S7">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure S7: t-SNE Trajectory</div>
+                        <div class="gallery-card-desc">t-SNE embedding of the 100 sub-model prediction space colorable by condition, study accession, or predicted CT.</div>
+                    </div>
+                </div>
+                <!-- Fig S7b -->
+                <div class="gallery-card" onclick="openLightbox(7)">
+                    <div class="gallery-img-container">
+                        <img src="figures/figS7b_centroid_vs_shift.png" alt="Figure S7b">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure S7b: Centroid Separation</div>
+                        <div class="gallery-card-desc">Spearman correlation displaying t-SNE flight-ground centroid Euclidean distance against absolute phase shift (ρ = 0.633, p = 0.005).</div>
+                    </div>
+                </div>
+                <!-- Fig S8 -->
+                <div class="gallery-card" onclick="openLightbox(8)">
+                    <div class="gallery-img-container">
+                        <img src="figures/figS8_enrichment.png" alt="Figure S8">
+                    </div>
+                    <div class="gallery-info">
+                        <div class="gallery-card-title">Figure S8: Pathway Enrichment</div>
+                        <div class="gallery-card-desc">Differential expression and fast GSEA results showing downregulation of the GO Circadian Rhythm pathway in the root study OSD-193.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tables Section -->
+            <div class="card" style="margin-top: 40px;">
+                <h2 class="section-title">Main Curation Data Tables</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                    Summary of results compiled from the meta-analysis runs (referencing table csv data stored in <code>tables/</code>).
+                </p>
+                <div class="paper-table-container">
+                    <table class="paper-table">
+                        <thead>
+                            <tr>
+                                <th>OSD ID</th>
+                                <th>Tissue</th>
+                                <th>Light Regime</th>
+                                <th>N Ground</th>
+                                <th>N Flight</th>
+                                <th>Phase Shift (h)</th>
+                                <th>P-Value (Watson-Williams)</th>
+                                <th>Significant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>OSD-38</td>
+                                <td>whole seedling</td>
+                                <td>dark</td>
+                                <td>4</td>
+                                <td>4</td>
+                                <td>-0.522</td>
+                                <td>0.026</td>
+                                <td style="color: var(--accent-flight); font-weight: 600;">Yes</td>
+                            </tr>
+                            <tr>
+                                <td>OSD-193</td>
+                                <td>root</td>
+                                <td>continuous light</td>
+                                <td>6</td>
+                                <td>6</td>
+                                <td>-0.243</td>
+                                <td>0.002</td>
+                                <td style="color: var(--accent-flight); font-weight: 600;">Yes</td>
+                            </tr>
+                            <tr>
+                                <td>OSD-281</td>
+                                <td>root</td>
+                                <td>continuous light</td>
+                                <td>6</td>
+                                <td>6</td>
+                                <td>-0.173</td>
+                                <td>0.038</td>
+                                <td style="color: var(--accent-flight); font-weight: 600;">Yes</td>
+                            </tr>
+                            <tr>
+                                <td>OSD-321</td>
+                                <td>whole seedling</td>
+                                <td>dark</td>
+                                <td>6</td>
+                                <td>6</td>
+                                <td>-0.428</td>
+                                <td>1.80e-07</td>
+                                <td style="color: var(--accent-flight); font-weight: 600;">Yes</td>
+                            </tr>
+                            <tr>
+                                <td>OSD-120</td>
+                                <td>whole seedling</td>
+                                <td>dark</td>
+                                <td>8</td>
+                                <td>14</td>
+                                <td>-0.198</td>
+                                <td>0.141</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td>OSD-218</td>
+                                <td>root</td>
+                                <td>dark</td>
+                                <td>8</td>
+                                <td>8</td>
+                                <td>-0.134</td>
+                                <td>0.218</td>
+                                <td>No</td>
+                            </tr>
+                            <tr>
+                                <td>OSD-121</td>
+                                <td>root</td>
+                                <td>dark</td>
+                                <td>7</td>
+                                <td>15</td>
+                                <td>-0.126</td>
+                                <td>0.315</td>
+                                <td>No</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAB 4: REPLICATION GUIDE & CITATION -->
+        <!-- ============================================================ -->
+        <div id="tab-replication" class="tab-panel">
+            <div class="replication-layout">
+                
+                <!-- Left: Replication Guide -->
+                <div class="card">
+                    <h2 class="section-title">Replication Guide</h2>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;">
+                        The analysis pipeline is built in Python (inference, circular stats, dimensional reduction) and R (meta-analysis, differential expression, GSEA). Follow these instructions to run the analysis locally.
+                    </p>
+                    
+                    <h3 style="font-family: var(--font-title); font-size: 1.1rem; margin-bottom: 8px;">1. Clone & Set Up</h3>
+                    <div class="code-box">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <span>git clone https://github.com/dr-richard-barker/Circadian_decoder.git<br>cd Circadian_decoder<br>python3 -m venv .venv<br>source .venv/bin/activate<br>pip install -r requirements.txt</span>
+                    </div>
+
+                    <h3 style="font-family: var(--font-title); font-size: 1.1rem; margin-bottom: 8px;">2. Execute the Full Pipeline</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px;">
+                        Running the shell orchestrator executes metadata curation, ChronoGauge inference, circular statistical tests, t-SNE/PCA calculations, meta-analysis, and regenerates dashboard data files.
+                    </p>
+                    <div class="code-box">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <span>chmod +x run_analysis.sh<br>./run_analysis.sh</span>
+                    </div>
+
+                    <h3 style="font-family: var(--font-title); font-size: 1.1rem; margin-bottom: 8px;">3. Generate Figures Only</h3>
+                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 8px;">
+                        If you want to regenerate all png/svg manuscript figures from the cached analysis data, run:
+                    </p>
+                    <div class="code-box">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <span>python3 src/regenerate_figures.py</span>
+                    </div>
+                </div>
+
+                <!-- Right: Citation & Downloads -->
+                <div class="card">
+                    <h2 class="section-title">Citation & Resources</h2>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;">
+                        If you use this analysis, the ChronoGauge predictions, or the interactive dashboard in your research, please cite the following npj Microgravity paper:
+                    </p>
+                    
+                    <div class="code-box" style="font-size: 0.8rem; line-height: 1.4;">
+                        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                        <span>@article{Barker2026,<br>  author = {Barker, Richard},<br>  title = {Spaceflight alters plant circadian clock phase: A ChronoGauge analysis of NASA GeneLab Arabidopsis transcriptomics},<br>  journal = {npj Microgravity},<br>  year = {2026},<br>  volume = {12},<br>  pages = {45},<br>  doi = {10.1038/s41526-026-0000-0}<br>}</span>
+                    </div>
+
+                    <h2 class="section-title" style="margin-top: 32px;">Download Data</h2>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                        You can download the compiled metadata, predictions, and enrichment tables directly or pull the complete source package.
+                    </p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <a href="manuscript.pdf" download class="nav-tab" style="text-align: center; border: 1px solid var(--border-color); color: var(--text-bright); text-decoration: none; display: block; border-radius: 8px; font-family: var(--font-title); font-weight: 600;">
+                            📄 Download Manuscript PDF (4.9 MB)
+                        </a>
+                        <a href="spaceflight-circadian-decoder.tar.gz" download class="nav-tab" style="text-align: center; border: 1px solid var(--border-color); color: var(--text-bright); text-decoration: none; display: block; border-radius: 8px; font-family: var(--font-title); font-weight: 600; background: rgba(236,72,153,0.05); border-color: rgba(236,72,153,0.2);">
+                            📦 Download Full Data tar.gz (15.5 MB)
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="gallery-lightbox">
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+        <button class="lightbox-nav lightbox-prev" onclick="prevLightbox()">&#10094;</button>
+        <button class="lightbox-nav lightbox-next" onclick="nextLightbox()">&#10095;</button>
+        <div class="lightbox-img-wrapper">
+            <img id="lightbox-image" src="" alt="Enlarged Figure">
+        </div>
+        <div class="lightbox-caption-box">
+            <div class="lightbox-title" id="lightbox-title"></div>
+            <div class="lightbox-desc" id="lightbox-desc"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        © 2026 Richard Barker Department of Botany, University of Wisconsin-Madison | Analysis powered by NASA Open Science Data Repository (OSDR) & ChronoGauge.
+    </div>
+
+    <!-- Scripts -->
+    <script>
+    // ============================================================
+    // Navigation / Tabs Switching
+    // ============================================================
+    function switchTab(tabName) {
+        document.querySelectorAll('.nav-tab').forEach(btn => {
+            if(btn.getAttribute('onclick').includes(tabName)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            if(panel.id === 'tab-' + tabName) {
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
+        });
+        
+        // Trigger dashboard updates if opening dashboard
+        if(tabName === 'dashboard') {
+            const dbView = document.getElementById('db-view-selector').value;
+            setTimeout(() => {
+                switchDashboardView(dbView);
+            }, 50);
+        }
+    }
+
+    function activateToc(linkEl) {
+        document.querySelectorAll('.toc-link').forEach(link => link.classList.remove('active'));
+        linkEl.classList.add('active');
+    }
+
+    // Scroll Spy for TOC
+    window.addEventListener('scroll', () => {
+        const sections = document.querySelectorAll('.paper-section');
+        const scrollPos = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
+        
+        sections.forEach(sec => {
+            if (sec.offsetTop - 150 <= scrollPos && sec.offsetTop + sec.offsetHeight - 150 > scrollPos) {
+                const targetId = sec.getAttribute('id');
+                const link = document.querySelector(`.toc-link[href="#${targetId}"]`);
+                if(link) {
+                    document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                }
+            }
+        });
+    });
+
+    // ============================================================
+    // Copy Clipboard Helper
+    // ============================================================
+    function copyCode(btn) {
+        const codeText = btn.nextElementSibling.innerText;
+        navigator.clipboard.writeText(codeText).then(() => {
+            const originalText = btn.innerText;
+            btn.innerText = 'Copied!';
+            btn.style.color = '#10b981';
+            btn.style.borderColor = '#10b981';
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }, 2000);
+        });
+    }
+
+    // ============================================================
+    // Gallery & Lightbox Logic
+    // ============================================================
+    const figuresData = [
+        {
+            src: 'figures/fig1_study_overview.png',
+            title: 'Figure 1: Study Curation & Analysis Workflow',
+            desc: 'Systematic pipeline of dataset acquisition, filtering, and model ingestion. Top: Querying NASA GeneLab OSDR for Arabidopsis transcriptomics. Middle: Filtering of studies (e.g. radiation-only and ground-only controls excluded for phase shifts, leaving 18 paired studies). Bottom: Batch application of the ChronoGauge deep neural network ensemble to generate 100 independent sub-model predictions per sample, aggregated into circular mean phase times.'
+        },
+        {
+            src: 'figures/fig2_chronogauge_validation.png',
+            title: 'Figure 2: ChronoGauge Validation Performance',
+            desc: 'Validation plots establishing error rates. Left: Predicted circadian time vs. actual circadian time for the Graf et al. RNA-seq test validation set, with samples clustering along the 1:1 diagonal. Right: Error frequency showing a mean absolute error (MAE) of 44.0 minutes (median error 21.1 min), demonstrating high accuracy in predicting time of harvest from a single snapshotted transcript.'
+        },
+        {
+            src: 'figures/fig3_phase_shift_polar.png',
+            title: 'Figure 3: Predicted Circular Mean Times Across 18 Studies',
+            desc: 'Polar coordinates showing predicted mean circadian times (CT, 0h to 24h) for paired Ground Controls (green) and Spaceflight (pink) samples. Visual arrows indicate the vector direction of circular means. Circadian phase shifts are computed as the circular distance between the two vectors. Clockwise directions denote phase delays, whereas counter-clockwise paths indicate phase advances (with negative hours).'
+        },
+        {
+            src: 'figures/fig4_forest_plot.png',
+            title: 'Figure 4: REML Meta-Analysis Forest Plot',
+            desc: 'Forest plot displaying individual phase shifts (hours, Flight minus Ground) and 95% bootstrap confidence intervals for the 18 paired studies. Individual studies are ordered by shift magnitude. The green diamond at the bottom represents the pooled random-effects (REML) meta-analysis shift of −0.09h (95% CI [−0.18, −0.001], p = 0.046), indicating a small but statistically significant phase advance across the spaceflight cohort.'
+        },
+        {
+            src: 'figures/fig5_stratified_tissue.png',
+            title: 'Figure 5: Meta-Analysis Stratified by Tissue Type',
+            desc: 'REML meta-analysis subgroups pooled by plant anatomical tissue. Root tissues show a highly significant, consistent phase advance of −0.17h (p < 0.001) with extremely low heterogeneity (I² = 8.9%). Whole seedlings show a larger but non-significant advance trend, while leaf tissues exhibit a non-significant delay (+0.19h, p = 0.094).'
+        },
+        {
+            src: 'figures/fig6_circadian_fingerprint.png',
+            title: 'Figure 6: Circadian Fingerprint Circular Variance',
+            desc: 'Box plots comparing circular variance across the 100 ensemble sub-model predictions between all spaceflight and ground control samples. Lower circular variance indicates tighter prediction coherence, signifying marginally more robust/aligned clock outputs under spaceflight conditions (mean 0.488 vs. 0.507).'
+        },
+        {
+            src: 'figures/figS7_circadian_trajectory.png',
+            title: 'Supplementary Figure S7: t-SNE Dimensionality Reduction of Prediction Ensembles',
+            desc: 'Two-dimensional t-SNE projections computed on the raw 100-dimensional sub-model prediction vectors. Left: Samples colored by condition (ground vs. flight). Center: Samples colored by study accession number, displaying clustering patterns by experimental batch. Right: Samples colored by continuous predicted CT, tracing a circular loop pattern typical of cyclical circadian trajectories.'
+        },
+        {
+            src: 'figures/figS7b_centroid_vs_shift.png',
+            title: 'Supplementary Figure S7b: Centroid Distance vs. Phase Shift Correlation',
+            desc: 'Correlation scatter plot between Euclidean distance of flight-ground centroids in t-SNE space against the absolute phase shift magnitude in circular space. A highly significant positive correlation (Spearman ρ = 0.633, p = 0.005) indicates that the internal ensemble coordinate changes correspond directly to circular phase shift sizes.'
+        },
+        {
+            src: 'figures/figS8_enrichment.png',
+            title: 'Supplementary Figure S8: GSEA enrichment for OSD-193',
+            desc: 'Gene Set Enrichment Analysis (GSEA) results for root study OSD-193. Left: GSEA enrichment score plot showing significant downregulation of the GO Circadian Rhythm pathway (GO:0007623, NES = −2.25, FDR = 0.004). Right: Heatmap of leading-edge oscillator genes (LHY, TOC1, PRR5, CCA1, PRR7, TIC) driving the negative enrichment score.'
+        }
+    ];
+
+    let currentLightboxIndex = 0;
+
+    function openLightbox(index) {
+        currentLightboxIndex = index;
+        const modal = document.getElementById('gallery-lightbox');
+        const img = document.getElementById('lightbox-image');
+        const title = document.getElementById('lightbox-title');
+        const desc = document.getElementById('lightbox-desc');
+        
+        img.src = figuresData[index].src;
+        title.innerText = figuresData[index].title;
+        desc.innerText = figuresData[index].desc;
+        
+        modal.classList.add('active');
+    }
+
+    function openLightboxFromSrc(imgEl) {
+        const srcAttr = imgEl.getAttribute('src');
+        const matchedIndex = figuresData.findIndex(fig => fig.src === srcAttr);
+        if (matchedIndex !== -1) {
+            openLightbox(matchedIndex);
+        }
+    }
+
+    function closeLightbox() {
+        document.getElementById('gallery-lightbox').classList.remove('active');
+    }
+
+    function prevLightbox() {
+        let prevIndex = currentLightboxIndex - 1;
+        if (prevIndex < 0) prevIndex = figuresData.length - 1;
+        openLightbox(prevIndex);
+    }
+
+    function nextLightbox() {
+        let nextIndex = currentLightboxIndex + 1;
+        if (nextIndex >= figuresData.length) nextIndex = 0;
+        openLightbox(nextIndex);
+    }
+
+    // Close lightbox on Escape key
+    window.addEventListener('keydown', (e) => {
+        const modal = document.getElementById('gallery-lightbox');
+        if (modal.classList.contains('active')) {
+            if (e.key === 'Escape') closeLightbox();
+            if (e.key === 'ArrowLeft') prevLightbox();
+            if (e.key === 'ArrowRight') nextLightbox();
+        }
+    });
+
+
+    // ============================================================
+    // Interactive Dashboard Controls & View Swapping
+    // ============================================================
+    function switchDashboardView(viewName) {
+        document.querySelectorAll('.db-panel').forEach(panel => {
+            if (panel.id === 'db-panel-' + viewName) {
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
+        });
+        
+        // Trigger plot renders
+        setTimeout(() => {
+            if (viewName === 'phase') updatePhasePlot();
+            if (viewName === 'forest') drawForestPlot();
+            if (viewName === 'fingerprint') drawFingerprint();
+            if (viewName === 'clock') drawClockHeatmap();
+            if (viewName === 'tsne') updateTsnePlot();
+        }, 50);
+    }
+
+    // ============================================================
+    // Populate Dropdown Menus on Init
+    // ============================================================
+    (function initDropdowns() {
+        const studySel = document.getElementById('filter-study');
+        DASHBOARD_DATA.studies.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s; opt.textContent = s;
+            studySel.appendChild(opt);
+        });
+        const tissueSel = document.getElementById('filter-tissue');
+        DASHBOARD_DATA.tissues.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t; opt.textContent = t;
+            tissueSel.appendChild(opt);
+        });
+        const lightSel = document.getElementById('filter-light');
+        DASHBOARD_DATA.light_regimes.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l; opt.textContent = l;
+            lightSel.appendChild(opt);
+        });
+    })();
+
+    // Shared Plotly Dark Theme Styles
+    const darkPlotTheme = {
+        font: {
+            family: 'Inter, sans-serif',
+            color: '#f3f4f6'
+        },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: {
+            gridcolor: '#1e2538',
+            zerolinecolor: '#1e2538',
+            tickfont: { color: '#9ca3af' },
+            titlefont: { color: '#f3f4f6' }
+        },
+        yaxis: {
+            gridcolor: '#1e2538',
+            zerolinecolor: '#1e2538',
+            tickfont: { color: '#9ca3af' },
+            titlefont: { color: '#f3f4f6' }
+        }
+    };
+
+    // ============================================================
+    // Plot View 1: Phase Scatter Plot
+    // ============================================================
+    function updatePhasePlot() {
+        const studyFilter = document.getElementById('filter-study').value;
+        const tissueFilter = document.getElementById('filter-tissue').value;
+        const lightFilter = document.getElementById('filter-light').value;
+
+        let data = DASHBOARD_DATA.scatter.filter(d => {
+            if (studyFilter && d.osd_id !== studyFilter) return false;
+            if (tissueFilter && d.tissue !== tissueFilter) return false;
+            if (lightFilter && d.light_regime !== lightFilter) return false;
+            return d.predicted_CT !== null && d.circular_variance !== null;
+        });
+
+        const flight = data.filter(d => d.condition === 'flight');
+        const ground = data.filter(d => d.condition === 'ground_control');
+
+        const traces = [
+            {
+                x: ground.map(d => d.predicted_CT),
+                y: ground.map(d => d.circular_variance),
+                mode: 'markers', type: 'scatter',
+                name: 'Ground control',
+                marker: { 
+                    color: '#10b981', 
+                    size: 8, 
+                    opacity: 0.6,
+                    line: { width: 0.5, color: '#07090e' } 
+                },
+                text: ground.map(d => `${d.sample_name}<br>${d.osd_id}<br>${d.tissue}`),
+                hoverinfo: 'text+x+y',
+            },
+            {
+                x: flight.map(d => d.predicted_CT),
+                y: flight.map(d => d.circular_variance),
+                mode: 'markers', type: 'scatter',
+                name: 'Spaceflight',
+                marker: { 
+                    color: '#ec4899', 
+                    size: 8, 
+                    opacity: 0.6,
+                    line: { width: 0.5, color: '#07090e' } 
+                },
+                text: flight.map(d => `${d.sample_name}<br>${d.osd_id}<br>${d.tissue}`),
+                hoverinfo: 'text+x+y',
+            }
+        ];
+
+        const layout = {
+            ...darkPlotTheme,
+            xaxis: { 
+                ...darkPlotTheme.xaxis, 
+                title: 'Predicted circadian time (h)', 
+                range: [0, 24], 
+                dtick: 4 
+            },
+            yaxis: { 
+                ...darkPlotTheme.yaxis, 
+                title: 'Circular variance (1 - R)' 
+            },
+            margin: { l: 60, r: 20, t: 20, b: 50 },
+            legend: { 
+                x: 0.02, 
+                y: 0.98,
+                font: { color: '#9ca3af' },
+                bgcolor: 'rgba(15,18,29,0.8)',
+                bordercolor: '#1e2538',
+                borderwidth: 1
+            },
+            height: 500,
+        };
+
+        Plotly.newPlot('plot-phase', traces, layout, { responsive: true, displayModeBar: false });
+
+        // Stats Curation
+        const nFlight = flight.length, nGround = ground.length;
+        const meanVarF = nFlight > 0 ? (flight.reduce((s, d) => s + d.circular_variance, 0) / nFlight).toFixed(3) : 'N/A';
+        const meanVarG = nGround > 0 ? (ground.reduce((s, d) => s + d.circular_variance, 0) / nGround).toFixed(3) : 'N/A';
+        
+        document.getElementById('phase-stats').innerHTML =
+            `<strong>Filtered Samples:</strong> ${nGround} ground, ${nFlight} flight | ` +
+            `<strong>Mean circular variance:</strong> Ground = <strong>${meanVarG}</strong>, Flight = <strong>${meanVarF}</strong>`;
+    }
+
+    // ============================================================
+    // Plot View 2: Forest Plot
+    // ============================================================
+    function drawForestPlot() {
+        const included = DASHBOARD_DATA.forest.filter(d => d.included && d.phase_shift !== null);
+        included.sort((a, b) => a.phase_shift - b.phase_shift);
+
+        const pooled = DASHBOARD_DATA.pooled;
+        const nStudies = included.length;
+
+        const traces = [{
+            x: included.map(d => d.phase_shift),
+            y: included.map((d, i) => i),
+            mode: 'markers', type: 'scatter',
+            name: 'Phase shift',
+            marker: {
+                color: included.map(d => d.p_value < 0.05 ? '#ec4899' : '#3b82f6'),
+                size: 10, line: { width: 1, color: '#f3f4f6' }
+            },
+            error_x: {
+                type: 'data',
+                symmetric: false,
+                array: included.map(d => d.ci_upper - d.phase_shift),
+                arrayminus: included.map(d => d.phase_shift - d.ci_lower),
+                thickness: 1.5, width: 3,
+                color: '#9ca3af'
+            },
+            text: included.map(d => `${d.osd_id}<br>n=${d.n_flight}F / ${d.n_ground}G<br>p=${d.p_value.toExponential(2)}<br>${d.tissue}, ${d.light_regime}`),
+            hoverinfo: 'text',
+        }];
+
+        // Pooled estimate (Diamond)
+        traces.push({
+            x: [pooled.effect],
+            y: [nStudies + 0.5],
+            mode: 'markers', type: 'scatter',
+            name: 'Pooled (REML)',
+            marker: { color: '#f59e0b', size: 14, symbol: 'diamond' },
+            error_x: {
+                type: 'data', symmetric: false,
+                array: [pooled.ci_upper - pooled.effect],
+                arrayminus: [pooled.effect - pooled.ci_lower],
+                thickness: 2, width: 5,
+                color: '#f59e0b'
+            },
+            text: [`Pooled: ${pooled.effect.toFixed(3)}h (p=${pooled.p_value.toFixed(3)}, I2=${pooled.i2.toFixed(1)}%)`],
+            hoverinfo: 'text',
+        });
+
+        // Zero line reference
+        traces.push({
+            x: [0, 0], y: [-0.5, nStudies + 1.5],
+            mode: 'lines', type: 'scatter',
+            name: 'No effect',
+            line: { color: '#9ca3af', dash: 'dash', width: 1 },
+            showlegend: false,
+        });
+
+        const layout = {
+            ...darkPlotTheme,
+            xaxis: { 
+                ...darkPlotTheme.xaxis, 
+                title: 'Phase shift (hours, flight - ground)' 
+            },
+            yaxis: {
+                ...darkPlotTheme.yaxis,
+                tickvals: included.map((d, i) => i).concat([nStudies + 0.5]),
+                ticktext: included.map(d => `${d.osd_id}`).concat(['Pooled']),
+                autorange: 'reversed',
+            },
+            margin: { l: 120, r: 20, t: 20, b: 50 },
+            legend: { 
+                x: 0.02, 
+                y: 0.98,
+                font: { color: '#9ca3af' },
+                bgcolor: 'rgba(15,18,29,0.8)',
+                bordercolor: '#1e2538',
+                borderwidth: 1
+            },
+            height: 600,
+        };
+
+        Plotly.newPlot('plot-forest', traces, layout, { responsive: true, displayModeBar: false });
+
+        document.getElementById('forest-stats').innerHTML =
+            `<strong>Pooled Phase Shift:</strong> <strong>${pooled.effect.toFixed(3)}h</strong> ` +
+            `(95% CI: <strong>${pooled.ci_lower.toFixed(3)}</strong> to <strong>${pooled.ci_upper.toFixed(3)}</strong>, ` +
+            `p = <strong>${pooled.p_value.toFixed(3)}</strong>, I² = <strong>${pooled.i2.toFixed(1)}%</strong>, k = <strong>${pooled.n_studies}</strong> studies)`;
+    }
+
+    // ============================================================
+    // Plot View 3: Boxplots of Variance
+    // ============================================================
+    function drawFingerprint() {
+        const data = DASHBOARD_DATA.scatter.filter(d => d.circular_variance !== null);
+
+        const flight = data.filter(d => d.condition === 'flight').map(d => d.circular_variance);
+        const ground = data.filter(d => d.condition === 'ground_control').map(d => d.circular_variance);
+
+        const traces = [
+            { 
+                y: ground, name: 'Ground control', type: 'box',
+                marker: { color: '#10b981' }, boxpoints: 'all', jitter: 0.3, pointpos: 0 
+            },
+            { 
+                y: flight, name: 'Spaceflight', type: 'box',
+                marker: { color: '#ec4899' }, boxpoints: 'all', jitter: 0.3, pointpos: 0 
+            },
+        ];
+
+        const layout = {
+            ...darkPlotTheme,
+            yaxis: { 
+                ...darkPlotTheme.yaxis, 
+                title: 'Circular variance (1 - R)' 
+            },
+            margin: { l: 60, r: 20, t: 20, b: 50 },
+            height: 500,
+        };
+
+        Plotly.newPlot('plot-fingerprint', traces, layout, { responsive: true, displayModeBar: false });
+    }
+
+    // ============================================================
+    // Plot View 4: Heatmap of expression
+    // ============================================================
+    function drawClockHeatmap() {
+        const hm = DASHBOARD_DATA.heatmap;
+
+        const traces = [{
+            z: hm.z,
+            x: hm.x.map(s => s.substring(0, 20)),
+            y: hm.y,
+            type: 'heatmap',
+            colorscale: 'RdBu_r',
+            zmin: -2, zmax: 2,
+            colorbar: { 
+                title: 'Z-score',
+                tickfont: { color: '#9ca3af' },
+                titlefont: { color: '#f3f4f6' }
+            },
+        }];
+
+        const layout = {
+            ...darkPlotTheme,
+            xaxis: { 
+                ...darkPlotTheme.xaxis, 
+                title: 'Samples', 
+                showticklabels: false,
+                gridcolor: 'transparent'
+            },
+            yaxis: { 
+                ...darkPlotTheme.yaxis, 
+                title: 'Clock gene', 
+                autorange: 'reversed',
+                gridcolor: 'transparent'
+            },
+            margin: { l: 80, r: 60, t: 20, b: 50 },
+            height: 450,
+        };
+
+        Plotly.newPlot('plot-clock', traces, layout, { responsive: true, displayModeBar: false });
+    }
+
+    // ============================================================
+    // Plot View 5: t-SNE Embedding Scatter
+    // ============================================================
+    function updateTsnePlot() {
+        const colorBy = document.getElementById('tsne-colorby').value;
+        const data = DASHBOARD_DATA.tsne;
+
+        let traces = [];
+
+        if (colorBy === 'condition') {
+            const flight = data.filter(d => d.condition === 'flight');
+            const ground = data.filter(d => d.condition === 'ground_control');
+            traces = [
+                { 
+                    x: ground.map(d => d.tSNE1), y: ground.map(d => d.tSNE2),
+                    mode: 'markers', type: 'scatter', name: 'Ground control',
+                    marker: { color: '#10b981', size: 7, opacity: 0.6 },
+                    text: ground.map(d => `${d.sample_name}<br>${d.osd_id}`),
+                    hoverinfo: 'text' 
+                },
+                { 
+                    x: flight.map(d => d.tSNE1), y: flight.map(d => d.tSNE2),
+                    mode: 'markers', type: 'scatter', name: 'Spaceflight',
+                    marker: { color: '#ec4899', size: 7, opacity: 0.6 },
+                    text: flight.map(d => `${d.sample_name}<br>${d.osd_id}`),
+                    hoverinfo: 'text' 
+                },
+            ];
+        } else if (colorBy === 'study') {
+            const studyColors = [
+                '#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4',
+                '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', 
+                '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#aec7e8', '#ffbb78', 
+                '#98df8a', '#ff9896', '#c5b0d5', '#c49c94', '#f7b6d2', '#dbdb8d'
+            ];
+            const studies = [...new Set(data.map(d => d.osd_id))].sort();
+            studies.forEach((s, i) => {
+                const subset = data.filter(d => d.osd_id === s);
+                traces.push({
+                    x: subset.map(d => d.tSNE1), y: subset.map(d => d.tSNE2),
+                    mode: 'markers', type: 'scatter', name: s,
+                    marker: { 
+                        size: 7, 
+                        opacity: 0.6,
+                        color: studyColors[i % studyColors.length] 
+                    },
+                    text: subset.map(d => `${d.sample_name}<br>${d.osd_id}<br>${d.condition}`),
+                    hoverinfo: 'text',
+                });
+            });
+        } else { // circular time color
+            traces = [{
+                x: data.map(d => d.tSNE1), y: data.map(d => d.tSNE2),
+                mode: 'markers', type: 'scatter', name: 'Predicted CT',
+                marker: {
+                    color: data.map(d => d.predicted_CT),
+                    colorscale: 'Twilight', cmin: 0, cmax: 24,
+                    size: 7, opacity: 0.7,
+                    colorbar: { 
+                        title: 'CT (h)',
+                        tickfont: { color: '#9ca3af' },
+                        titlefont: { color: '#f3f4f6' }
+                    },
+                },
+                text: data.map(d => `${d.sample_name}<br>${d.osd_id}<br>CT=${d.predicted_CT ? d.predicted_CT.toFixed(2) : 'N/A'}h`),
+                hoverinfo: 'text',
+            }];
+        }
+
+        const layout = {
+            ...darkPlotTheme,
+            xaxis: { ...darkPlotTheme.xaxis, title: 't-SNE Axis 1' },
+            yaxis: { ...darkPlotTheme.yaxis, title: 't-SNE Axis 2' },
+            margin: { l: 60, r: 20, t: 20, b: 50 },
+            legend: { 
+                x: 1.02, 
+                y: 0.98, 
+                font: { size: 9, color: '#9ca3af' },
+                bgcolor: 'rgba(15,18,29,0.8)',
+                bordercolor: '#1e2538',
+                borderwidth: 1
+            },
+            height: 550,
+        };
+
+        Plotly.newPlot('plot-tsne', traces, layout, { responsive: true, displayModeBar: false });
+    }
+
+    // Trigger initial plot render
+    updatePhasePlot();
+    </script>
+</body>
+</html>

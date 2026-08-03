@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](requirements.txt)
 [![R 4.4+](https://img.shields.io/badge/R-4.4+-blue.svg)](src/enrichment_analysis.R)
-[![Interactive Dashboard](https://img.shields.io/badge/Interactive-Dashboard-blueviolet.svg)](https://dr-richard-barker.github.io/Circadian_decoder/dashboard/)
+[![Interactive Dashboard](https://img.shields.io/badge/Interactive-Dashboard-blueviolet.svg)](https://dr-richard-barker.github.io/Circadian_decoder/)
 
 Deep learning analysis of circadian clock phase disruption in spaceflight-grown *Arabidopsis thaliana* using ChronoGauge and NASA GeneLab transcriptomics data.
 
@@ -114,18 +114,21 @@ python3 src/regenerate_figures.py
 
 ---
 
-## Interactive Dashboard
+## Interactive Dashboard & Research Portal
 
-The dashboard is built using static HTML5, CSS3, and JavaScript with **Plotly.js**, loading all analysis outputs locally with no server-side backend required. 
+The live research portal and interactive dashboard are deployed at [https://dr-richard-barker.github.io/Circadian_decoder/](https://dr-richard-barker.github.io/Circadian_decoder/).
 
-To run it locally:
+The portal is a self-contained, responsive web application that presents:
+1. A summary of the npj Microgravity manuscript.
+2. The interactive Plotly dashboard views (Phase Overview, Forest Plot, Circadian Fingerprint, Clock Genes Heatmap, and t-SNE Trajectories).
+3. A Figure Explorer suite with high-resolution main and supplementary figures.
+4. Local replication instructions.
+
+To run and preview the portal locally:
 ```bash
-cd dashboard
 python3 -m http.server 8000
 # Open http://localhost:8000 in your browser
 ```
-
-The live dashboard is deployed at [https://dr-richard-barker.github.io/Circadian_decoder/dashboard/](https://dr-richard-barker.github.io/Circadian_decoder/dashboard/).
 
 ---
 

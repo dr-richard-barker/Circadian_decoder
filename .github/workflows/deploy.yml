@@ -1,0 +1,36 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    concurrency: ci-${{ github.ref }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Build Deploy Directory 📁
+        run: |
+          mkdir dist
+          cp index.html dist/
+          cp -r figures dist/
+          cp -r dashboard dist/
+          cp -r tables dist/
+          cp manuscript.pdf dist/ || true
+          cp CITATION.cff dist/ || true
+          cp LICENSE dist/ || true
+
+      - name: Deploy to GitHub Pages 🚀
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
