@@ -110,7 +110,7 @@
             font-family: var(--font-title);
             font-size: 1.35rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--text-bright) 30%, var(--accent-flight) 100%);
+            background: linear-gradient(135deg, var(--text-bright) 30%, var(--accent-blue) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
@@ -197,7 +197,7 @@
         }
         
         .card:hover {
-            border-color: rgba(236, 72, 153, 0.25);
+            border-color: rgba(59, 110, 165, 0.3);
         }
 
         /* Styling Typography */
@@ -218,7 +218,7 @@
             left: 0;
             width: 80px;
             height: 2px;
-            background: linear-gradient(90deg, var(--accent-flight), var(--accent-meta));
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-meta));
         }
 
         /* TAB 1: RESEARCH SUMMARY SIDEBAR LAYOUT */
@@ -272,10 +272,10 @@
         }
 
         .toc-link.active {
-            color: var(--accent-flight);
+            color: var(--accent-blue);
             font-weight: 600;
-            border-left-color: var(--accent-flight);
-            background: rgba(236, 72, 153, 0.05);
+            border-left-color: var(--accent-blue);
+            background: rgba(59, 110, 165, 0.08);
             border-radius: 0 4px 4px 0;
         }
 
@@ -299,7 +299,7 @@
             font-weight: 800;
             line-height: 1.25;
             margin-bottom: 16px;
-            background: linear-gradient(135deg, var(--text-bright) 40%, var(--accent-flight) 100%);
+            background: linear-gradient(135deg, var(--text-bright) 40%, var(--accent-blue) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -431,6 +431,11 @@
             gap: 24px;
         }
 
+        .db-panel {
+            display: block;
+            margin-bottom: 30px;
+        }
+
         .controls-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -474,7 +479,7 @@
         }
 
         .stats-badge strong {
-            color: var(--accent-flight);
+            color: var(--accent-blue);
         }
 
         /* TAB 3: FIGURE EXPLORER */
@@ -498,8 +503,8 @@
 
         .gallery-card:hover {
             transform: translateY(-5px);
-            border-color: var(--accent-flight);
-            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.15);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 25px rgba(59, 110, 165, 0.15);
         }
 
         .gallery-img-container {
@@ -585,7 +590,7 @@
         }
 
         .lightbox-close:hover {
-            color: var(--accent-flight);
+            color: var(--accent-blue);
         }
 
         .lightbox-img-wrapper {
@@ -709,7 +714,7 @@
 
         .copy-btn:hover {
             color: var(--text-bright);
-            border-color: var(--accent-flight);
+            border-color: var(--accent-blue);
         }
 
         /* Tables styling */
@@ -983,23 +988,9 @@
         <div id="tab-dashboard" class="tab-panel">
             <div class="dashboard-grid">
                 
-                <!-- View Selector / Tabs inside Dashboard -->
-                <div class="controls-card">
-                    <div class="control-group">
-                        <label>Dashboard View:</label>
-                        <select id="db-view-selector" onchange="switchDashboardView(this.value)">
-                            <option value="phase">Phase Overview</option>
-                            <option value="forest">Forest Plot</option>
-                            <option value="fingerprint">Circadian Fingerprint</option>
-                            <option value="clock">Clock Genes Heatmap</option>
-                            <option value="tsne">t-SNE Trajectory</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Sub-panels -->
+                <!-- Sub-panels (All rendered automatically) -->
                 <!-- Panel 1: Phase Overview -->
-                <div id="db-panel-phase" class="card db-panel active">
+                <div id="db-panel-phase" class="card db-panel">
                     <h2 class="section-title">Phase Overview</h2>
                     <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
                         Circular scatter plot displaying predicted circadian time vs circular variance. Use the dropdown filters to slice the dataset.
@@ -1547,24 +1538,7 @@
     // ============================================================
     // Interactive Dashboard Controls & View Swapping
     // ============================================================
-    function switchDashboardView(viewName) {
-        document.querySelectorAll('.db-panel').forEach(panel => {
-            if (panel.id === 'db-panel-' + viewName) {
-                panel.classList.add('active');
-            } else {
-                panel.classList.remove('active');
-            }
-        });
-        
-        // Trigger plot renders
-        setTimeout(() => {
-            if (viewName === 'phase') updatePhasePlot();
-            if (viewName === 'forest') drawForestPlot();
-            if (viewName === 'fingerprint') drawFingerprint();
-            if (viewName === 'clock') drawClockHeatmap();
-            if (viewName === 'tsne') updateTsnePlot();
-        }, 50);
-    }
+    // switchDashboardView was removed because all plots are rendered automatically in a stack layout.
 
     // ============================================================
     // Populate Dropdown Menus on Init
@@ -1949,8 +1923,12 @@
         Plotly.newPlot('plot-tsne', traces, layout, { responsive: true, displayModeBar: false });
     }
 
-    // Trigger initial plot render
+    // Trigger all initial plot renders
     updatePhasePlot();
+    drawForestPlot();
+    drawFingerprint();
+    drawClockHeatmap();
+    updateTsnePlot();
 
     // MutationObserver to detect CoSE theme changes and update Plotly charts dynamically
     const themeObserver = new MutationObserver((mutations) => {
@@ -1978,11 +1956,14 @@
         darkPlotTheme.yaxis.tickfont.color = isDark ? '#9ca3af' : '#5a6473';
         darkPlotTheme.yaxis.titlefont.color = isDark ? '#f3f4f6' : '#1a2230';
 
-        // Re-render the active plot view
+        // Re-render all plots in the dashboard
         const activeTabPanel = document.querySelector('.tab-panel.active');
         if (activeTabPanel && activeTabPanel.id === 'tab-dashboard') {
-            const dbView = document.getElementById('db-view-selector').value;
-            switchDashboardView(dbView);
+            updatePhasePlot();
+            drawForestPlot();
+            drawFingerprint();
+            drawClockHeatmap();
+            updateTsnePlot();
         }
     }
 
