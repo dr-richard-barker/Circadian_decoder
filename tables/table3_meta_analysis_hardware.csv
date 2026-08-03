@@ -1,0 +1,11 @@
+Stratum,N_Studies,Pooled_Effect_h,CI_95_Lower,CI_95_Upper,P_Value,I2_pct,Tau2,Notes
+,2.0,-0.056,-0.125,0.013,0.1136,0.0,0.0,
+Advanced Biological Research System (ABRS),1.0,,,,NA,,,Too few studies in stratum
+BRIC,1.0,,,,NA,,,Too few studies in stratum
+BRIC-LED (Biological Research In a Canister - Light Emitting Diode),1.0,,,,NA,,,Too few studies in stratum
+BRIC-PDFU,2.0,-0.314,-0.706,0.077,0.1157,89.235,0.071,
+BRIC-PDFU (Petri Dish Fixation Unit),2.0,-0.245,-0.622,0.132,0.2026,94.012,0.07,
+European Modular Cultivation System (EMCS),2.0,0.143,-0.02,0.307,0.0859,0.0,0.0,
+Petri Dish,1.0,,,,NA,,,Too few studies in stratum
+Vegetable Production System (Veggie),5.0,-0.078,-0.233,0.078,0.3271,74.915,0.021,
+petri dish,1.0,,,,NA,,,Too few studies in stratum

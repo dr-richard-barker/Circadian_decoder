@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spaceflight Circadian Decoder - Interactive Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+    <script>window.Plotly || document.write('<script src="plotly.min.js"><\/script>')</script>
+    <script src="data.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #FAF9F3;
+            color: #000000;
+            padding: 20px;
+        }
+        h1 {
+            color: #0279EE;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: #ECE9E2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .controls label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+        .controls select {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+        }
+        .tab-bar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #ECE9E2;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s;
+        }
+        .tab.active {
+            background: #0279EE;
+            color: white;
+        }
+        .tab:hover:not(.active) {
+            background: #ddd;
+        }
+        .panel {
+            display: none;
+            background: white;
+            border-radius: 0 8px 8px 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .panel.active { display: block; }
+        .plot-container { width: 100%; }
+        .stats-box {
+            background: #ECE9E2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 13px;
+        }
+        .stats-box strong { color: #0279EE; }
+        .footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #999;
+        }
+        #plot-phase, #plot-forest, #plot-fingerprint, #plot-clock, #plot-tsne {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spaceflight Circadian Decoder</h1>
+    <p class="subtitle">Interactive exploration of circadian clock phase disruption in spaceflight-grown <em>Arabidopsis thaliana</em></p>
+
+    <div class="tab-bar">
+        <button class="tab active" onclick="showTab('phase', this)">Phase Overview</button>
+        <button class="tab" onclick="showTab('forest', this)">Forest Plot</button>
+        <button class="tab" onclick="showTab('fingerprint', this)">Circadian Fingerprint</button>
+        <button class="tab" onclick="showTab('clock', this)">Clock Genes</button>
+        <button class="tab" onclick="showTab('tsne', this)">t-SNE Trajectory</button>
+    </div>
+
+    <!-- Phase Overview Panel -->
+    <div id="panel-phase" class="panel active">
+        <div class="controls">
+            <label>Study:</label>
+            <select id="filter-study" onchange="updatePhasePlot()">
+                <option value="">All studies</option>
+            </select>
+            <label>Tissue:</label>
+            <select id="filter-tissue" onchange="updatePhasePlot()">
+                <option value="">All tissues</option>
+            </select>
+            <label>Light regime:</label>
+            <select id="filter-light" onchange="updatePhasePlot()">
+                <option value="">All regimes</option>
+            </select>
+        </div>
+        <div id="plot-phase" class="plot-container"></div>
+        <div class="stats-box" id="phase-stats"></div>
+    </div>
+
+    <!-- Forest Plot Panel -->
+    <div id="panel-forest" class="panel">
+        <div id="plot-forest" class="plot-container"></div>
+        <div class="stats-box" id="forest-stats"></div>
+    </div>
+
+    <!-- Fingerprint Panel -->
+    <div id="panel-fingerprint" class="panel">
+        <div id="plot-fingerprint" class="plot-container"></div>
+    </div>
+
+    <!-- Clock Genes Panel -->
+    <div id="panel-clock" class="panel">
+        <div id="plot-clock" class="plot-container"></div>
+    </div>
+
+    <!-- t-SNE Panel -->
+    <div id="panel-tsne" class="panel">
+        <div class="controls">
+            <label>Color by:</label>
+            <select id="tsne-colorby" onchange="updateTsnePlot()">
+                <option value="condition">Condition</option>
+                <option value="study">Study</option>
+                <option value="ct">Predicted CT</option>
+            </select>
+        </div>
+        <div id="plot-tsne" class="plot-container"></div>
+    </div>
+
+    <div class="footer">
+        Data: NASA GeneLab (23 studies, 603 samples) | Model: ChronoGauge (100-model ensemble) |
+        Analysis: Watson-Williams test + random-effects meta-analysis (metafor)
+    </div>
+
+    <script>
+    // ============================================================
+    // Tab switching
+    // ============================================================
+    function showTab(tabName, btnEl) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btnEl.classList.add('active');
+        document.getElementById('panel-' + tabName).classList.add('active');
+
+        // Trigger plot resize
+        setTimeout(() => {
+            if (tabName === 'phase') updatePhasePlot();
+            if (tabName === 'forest') drawForestPlot();
+            if (tabName === 'fingerprint') drawFingerprint();
+            if (tabName === 'clock') drawClockHeatmap();
+            if (tabName === 'tsne') updateTsnePlot();
+        }, 50);
+    }
+
+    // ============================================================
+    // Populate dropdowns
+    // ============================================================
+    (function initDropdowns() {
+        const studySel = document.getElementById('filter-study');
+        DASHBOARD_DATA.studies.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s; opt.textContent = s;
+            studySel.appendChild(opt);
+        });
+        const tissueSel = document.getElementById('filter-tissue');
+        DASHBOARD_DATA.tissues.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t; opt.textContent = t;
+            tissueSel.appendChild(opt);
+        });
+        const lightSel = document.getElementById('filter-light');
+        DASHBOARD_DATA.light_regimes.forEach(l => {
+            const opt = document.createElement('option');
+            opt.value = l; opt.textContent = l;
+            lightSel.appendChild(opt);
+        });
+    })();
+
+    // ============================================================
+    // Panel 1: Phase Overview
+    // ============================================================
+    function updatePhasePlot() {
+        const studyFilter = document.getElementById('filter-study').value;
+        const tissueFilter = document.getElementById('filter-tissue').value;
+        const lightFilter = document.getElementById('filter-light').value;
+
+        let data = DASHBOARD_DATA.scatter.filter(d => {
+            if (studyFilter && d.osd_id !== studyFilter) return false;
+            if (tissueFilter && d.tissue !== tissueFilter) return false;
+            if (lightFilter && d.light_regime !== lightFilter) return false;
+            return d.predicted_CT !== null && d.circular_variance !== null;
+        });
+
+        const flight = data.filter(d => d.condition === 'flight');
+        const ground = data.filter(d => d.condition === 'ground_control');
+
+        const traces = [
+            {
+                x: ground.map(d => d.predicted_CT),
+                y: ground.map(d => d.circular_variance),
+                mode: 'markers', type: 'scatter',
+                name: 'Ground control',
+                marker: { color: '#0279EE', size: 8, opacity: 0.6,
+                          line: { width: 0.5, color: 'white' } },
+                text: ground.map(d => `${d.sample_name}<br>${d.osd_id}<br>${d.tissue}`),
+                hoverinfo: 'text+x+y',
+            },
+            {
+                x: flight.map(d => d.predicted_CT),
+                y: flight.map(d => d.circular_variance),
+                mode: 'markers', type: 'scatter',
+                name: 'Spaceflight',
+                marker: { color: '#FF9400', size: 8, opacity: 0.6,
+                          line: { width: 0.5, color: 'white' } },
+                text: flight.map(d => `${d.sample_name}<br>${d.osd_id}<br>${d.tissue}`),
+                hoverinfo: 'text+x+y',
+            }
+        ];
+
+        const layout = {
+            xaxis: { title: 'Predicted circadian time (h)', range: [0, 24], dtick: 4 },
+            yaxis: { title: 'Circular variance (1 - R)' },
+            margin: { l: 60, r: 20, t: 30, b: 50 },
+            legend: { x: 0.02, y: 0.98 },
+            plot_bgcolor: '#FAF9F3',
+            paper_bgcolor: 'white',
+            height: 500,
+        };
+
+        Plotly.newPlot('plot-phase', traces, layout, { responsive: true });
+
+        // Stats
+        const nFlight = flight.length, nGround = ground.length;
+        const meanVarF = nFlight > 0 ? (flight.reduce((s, d) => s + d.circular_variance, 0) / nFlight).toFixed(3) : 'N/A';
+        const meanVarG = nGround > 0 ? (ground.reduce((s, d) => s + d.circular_variance, 0) / nGround).toFixed(3) : 'N/A';
+        document.getElementById('phase-stats').innerHTML =
+            `<strong>Samples:</strong> ${nGround} ground, ${nFlight} flight | ` +
+            `<strong>Mean circular variance:</strong> Ground = ${meanVarG}, Flight = ${meanVarF}`;
+    }
+
+    // ============================================================
+    // Panel 2: Forest Plot
+    // ============================================================
+    function drawForestPlot() {
+        const included = DASHBOARD_DATA.forest.filter(d => d.included && d.phase_shift !== null);
+        included.sort((a, b) => a.phase_shift - b.phase_shift);
+
+        const pooled = DASHBOARD_DATA.pooled;
+        const nStudies = included.length;
+
+        const traces = [{
+            x: included.map(d => d.phase_shift),
+            y: included.map((d, i) => i),
+            mode: 'markers', type: 'scatter',
+            name: 'Phase shift',
+            marker: {
+                color: included.map(d => d.p_value < 0.05 ? '#FF9400' : '#0279EE'),
+                size: 10, line: { width: 1, color: 'white' }
+            },
+            error_x: {
+                type: 'data',
+                symmetric: false,
+                array: included.map(d => d.ci_upper - d.phase_shift),
+                arrayminus: included.map(d => d.phase_shift - d.ci_lower),
+                thickness: 1.5, width: 3,
+            },
+            text: included.map(d => `${d.osd_id}<br>n=${d.n_flight}F / ${d.n_ground}G<br>p=${d.p_value.toExponential(2)}<br>${d.tissue}, ${d.light_regime}`),
+            hoverinfo: 'text',
+        }];
+
+        // Pooled estimate
+        traces.push({
+            x: [pooled.effect],
+            y: [nStudies + 0.5],
+            mode: 'markers', type: 'scatter',
+            name: 'Pooled (REML)',
+            marker: { color: '#75A025', size: 14, symbol: 'diamond' },
+            error_x: {
+                type: 'data', symmetric: false,
+                array: [pooled.ci_upper - pooled.effect],
+                arrayminus: [pooled.effect - pooled.ci_lower],
+                thickness: 2, width: 5,
+            },
+            text: [`Pooled: ${pooled.effect.toFixed(3)}h (p=${pooled.p_value.toFixed(3)}, I2=${pooled.i2.toFixed(1)}%)`],
+            hoverinfo: 'text',
+        });
+
+        // Zero line
+        traces.push({
+            x: [0, 0], y: [-0.5, nStudies + 1.5],
+            mode: 'lines', type: 'scatter',
+            name: 'No effect',
+            line: { color: 'gray', dash: 'dash', width: 1 },
+            showlegend: false,
+        });
+
+        const layout = {
+            xaxis: { title: 'Phase shift (hours, flight - ground)' },
+            yaxis: {
+                tickvals: included.map((d, i) => i).concat([nStudies + 0.5]),
+                ticktext: included.map(d => `${d.osd_id}`).concat(['Pooled']),
+                autorange: 'reversed',
+            },
+            margin: { l: 120, r: 20, t: 30, b: 50 },
+            legend: { x: 0.02, y: 0.98 },
+            plot_bgcolor: '#FAF9F3',
+            paper_bgcolor: 'white',
+            height: 600,
+        };
+
+        Plotly.newPlot('plot-forest', traces, layout, { responsive: true });
+
+        document.getElementById('forest-stats').innerHTML =
+            `<strong>Pooled phase shift:</strong> ${pooled.effect.toFixed(3)}h ` +
+            `(95% CI: ${pooled.ci_lower.toFixed(3)} to ${pooled.ci_upper.toFixed(3)}, ` +
+            `p = ${pooled.p_value.toFixed(3)}, I2 = ${pooled.i2.toFixed(1)}%, k = ${pooled.n_studies} studies)`;
+    }
+
+    // ============================================================
+    // Panel 3: Circadian Fingerprint
+    // ============================================================
+    function drawFingerprint() {
+        const data = DASHBOARD_DATA.scatter.filter(d => d.circular_variance !== null);
+
+        // Box plot: circular variance by condition
+        const flight = data.filter(d => d.condition === 'flight').map(d => d.circular_variance);
+        const ground = data.filter(d => d.condition === 'ground_control').map(d => d.circular_variance);
+
+        const traces = [
+            { y: ground, name: 'Ground control', type: 'box',
+              marker: { color: '#0279EE' }, boxpoints: 'all', jitter: 0.3, pointpos: 0 },
+            { y: flight, name: 'Spaceflight', type: 'box',
+              marker: { color: '#FF9400' }, boxpoints: 'all', jitter: 0.3, pointpos: 0 },
+        ];
+
+        const layout = {
+            yaxis: { title: 'Circular variance (1 - R)' },
+            margin: { l: 60, r: 20, t: 30, b: 50 },
+            plot_bgcolor: '#FAF9F3',
+            paper_bgcolor: 'white',
+            height: 500,
+        };
+
+        Plotly.newPlot('plot-fingerprint', traces, layout, { responsive: true });
+    }
+
+    // ============================================================
+    // Panel 4: Clock Gene Heatmap
+    // ============================================================
+    function drawClockHeatmap() {
+        const hm = DASHBOARD_DATA.heatmap;
+
+        const traces = [{
+            z: hm.z,
+            x: hm.x.map(s => s.substring(0, 20)),
+            y: hm.y,
+            type: 'heatmap',
+            colorscale: 'RdBu_r',
+            zmin: -2, zmax: 2,
+            colorbar: { title: 'Z-score' },
+        }];
+
+        const layout = {
+            xaxis: { title: 'Samples', showticklabels: false },
+            yaxis: { title: 'Clock gene', autorange: 'reversed' },
+            margin: { l: 80, r: 60, t: 30, b: 50 },
+            plot_bgcolor: '#FAF9F3',
+            paper_bgcolor: 'white',
+            height: 400,
+        };
+
+        Plotly.newPlot('plot-clock', traces, layout, { responsive: true });
+    }
+
+    // ============================================================
+    // Panel 5: t-SNE Trajectory
+    // ============================================================
+    function updateTsnePlot() {
+        const colorBy = document.getElementById('tsne-colorby').value;
+        const data = DASHBOARD_DATA.tsne;
+
+        let traces = [];
+
+        if (colorBy === 'condition') {
+            const flight = data.filter(d => d.condition === 'flight');
+            const ground = data.filter(d => d.condition === 'ground_control');
+            traces = [
+                { x: ground.map(d => d.tSNE1), y: ground.map(d => d.tSNE2),
+                  mode: 'markers', type: 'scatter', name: 'Ground control',
+                  marker: { color: '#0279EE', size: 7, opacity: 0.6 },
+                  text: ground.map(d => `${d.sample_name}<br>${d.osd_id}`),
+                  hoverinfo: 'text' },
+                { x: flight.map(d => d.tSNE1), y: flight.map(d => d.tSNE2),
+                  mode: 'markers', type: 'scatter', name: 'Spaceflight',
+                  marker: { color: '#FF9400', size: 7, opacity: 0.6 },
+                  text: flight.map(d => `${d.sample_name}<br>${d.osd_id}`),
+                  hoverinfo: 'text' },
+            ];
+        } else if (colorBy === 'study') {
+            const studyColors = ['#0279EE','#FF9400','#75A025','#FD9BED','#E9ED4C','#000000',
+                '#1f77b4','#ff7f0e','#2ca02c','#d62728','#9467bd','#8c564b','#e377c2','#7f7f7f',
+                '#bcbd22','#17becf','#aec7e8','#ffbb78','#98df8a','#ff9896','#c5b0d5','#c49c94',
+                '#f7b6d2','#dbdb8d','#9edae5','#393b79','#637939','#8c6d31','#843c39','#7b4173'];
+            const studies = [...new Set(data.map(d => d.osd_id))].sort();
+            studies.forEach((s, i) => {
+                const subset = data.filter(d => d.osd_id === s);
+                traces.push({
+                    x: subset.map(d => d.tSNE1), y: subset.map(d => d.tSNE2),
+                    mode: 'markers', type: 'scatter', name: s,
+                    marker: { size: 7, opacity: 0.6,
+                              color: studyColors[i % studyColors.length] },
+                    text: subset.map(d => `${d.sample_name}<br>${d.osd_id}<br>${d.condition}`),
+                    hoverinfo: 'text',
+                });
+            });
+        } else { // ct
+            traces = [{
+                x: data.map(d => d.tSNE1), y: data.map(d => d.tSNE2),
+                mode: 'markers', type: 'scatter', name: 'Predicted CT',
+                marker: {
+                    color: data.map(d => d.predicted_CT),
+                    colorscale: 'Twilight', cmin: 0, cmax: 24,
+                    size: 7, opacity: 0.6,
+                    colorbar: { title: 'CT (h)' },
+                },
+                text: data.map(d => `${d.sample_name}<br>${d.osd_id}<br>CT=${d.predicted_CT ? d.predicted_CT.toFixed(2) : 'N/A'}h`),
+                hoverinfo: 'text',
+            }];
+        }
+
+        const layout = {
+            xaxis: { title: 't-SNE 1' },
+            yaxis: { title: 't-SNE 2' },
+            margin: { l: 60, r: 20, t: 30, b: 50 },
+            legend: { x: 1.02, y: 0.98, font: { size: 8 } },
+            plot_bgcolor: '#FAF9F3',
+            paper_bgcolor: 'white',
+            height: 550,
+        };
+
+        Plotly.newPlot('plot-tsne', traces, layout, { responsive: true });
+    }
+
+    // ============================================================
+    // Initialize all plots on load
+    // ============================================================
+    updatePhasePlot();
+    </script>
+</body>
+</html>
