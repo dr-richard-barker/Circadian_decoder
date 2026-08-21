@@ -17,7 +17,7 @@
 \usepackage{lineno}
 \usepackage{setspace}
 \usepackage{authblk}
-\usepackage{natbib}
+\usepackage[numbers,sort&compress]{natbib}
 \usepackage{rotating}
 \usepackage{array}
 
@@ -167,29 +167,11 @@ Flight samples showed slightly lower mean circular variance than ground controls
 
 Dimensionality reduction on the 100-dimensional ChronoGauge sub-model prediction vectors revealed that the multivariate circadian fingerprint captures phase disruption magnitude. In the t-SNE embedding (Supplementary Figure~S7), samples clustered partially by condition and study, with flight and ground centroids separated to varying degrees across studies. The Euclidean distance between flight and ground centroids in t-SNE space correlated strongly with the absolute phase shift magnitude (Spearman $\rho = 0.633$, $p = 0.005$, $N = 18$ studies). A similar correlation was observed in PCA space ($\rho = 0.628$, $p = 0.005$). Studies with the largest centroid distances---OSD-321 (12.7), OSD-217 (11.8), and OSD-193 (5.3)---were among those with the largest or most significant phase shifts. This demonstrates that the ensemble's internal prediction structure encodes biologically meaningful information about circadian disruption beyond the aggregate phase estimate.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{figures/figS7_circadian_trajectory.png}
-\caption{\textbf{Supplementary Figure S7. Circadian trajectory analysis.} (\textbf{A}) t-SNE embedding of 100-dimensional ChronoGauge sub-model predictions, colored by condition (flight vs ground control). (\textbf{B}) t-SNE embedding colored by study. (\textbf{C}) PCA of sub-model predictions colored by condition. (\textbf{D}) t-SNE embedding colored by predicted circadian time.}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.7\textwidth]{figures/figS7b_centroid_vs_shift.png}
-\caption{\textbf{Supplementary Figure S7b. Centroid distance versus phase shift.} t-SNE centroid distance (Euclidean distance between flight and ground centroids) plotted against absolute phase shift magnitude for 18 studies. Spearman $\rho = 0.633$, $p = 0.005$.}
-\end{figure}
-
 \subsection*{Gene set enrichment of phase-shifted studies}
 
 To determine whether the observed phase shifts translate into coherent transcriptional changes, we performed limma-voom differential expression and fgsea gene set enrichment on the four studies with significant phase shifts. Differential expression yielded 15,253 DEGs (FDR $< 0.05$) in OSD-321, 3,481 in OSD-38, 2,603 in OSD-193, and 2,454 in OSD-281, confirming substantial transcriptomic remodeling in these studies.
 
 Gene set enrichment across 816 GO BP and KEGG pathways revealed that OSD-193---the root study with a $-$0.24~h phase shift ($p = 0.002$)---showed significant downregulation of the circadian rhythm pathway (GO:0007623, NES = $-$2.25, FDR = 0.004) (Supplementary Figure~S8, Supplementary Table~S3). The leading-edge genes driving this enrichment included core clock components \textit{LHY} (AT1G01060), \textit{TOC1} (AT5G61380), \textit{PRR5} (AT5G24470), \textit{CCA1} (AT2G46830), \textit{PRR7} (AT2G46790), and \textit{TIC} (AT3G46640). This directly connects the ChronoGauge-detected phase advance to reduced expression of the oscillator machinery itself. The other three studies did not show significant circadian pathway enrichment despite having significant phase shifts, suggesting that phase disruption and transcriptional downregulation of clock genes are distinct phenomena that co-occur in some but not all contexts.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\textwidth]{figures/figS8_enrichment.png}
-\caption{\textbf{Supplementary Figure S8. Gene set enrichment of phase-shifted studies.} (\textbf{A}) Normalized enrichment score (NES) for the circadian rhythm pathway (GO:0007623) across the four significant phase-shift studies. OSD-193 shows significant downregulation (NES = $-$2.25, FDR = 0.004). (\textbf{B}) Top enriched pathways (FDR $< 0.05$) for OSD-321, the study with the largest phase shift. (\textbf{C}) GSEA running enrichment score for the circadian rhythm pathway in OSD-193.}
-\end{figure}
 
 \section*{Discussion}
 
@@ -217,9 +199,9 @@ We applied ChronoGauge, a deep learning circadian time predictor, to 24 \textit{
 
 \begin{table}[htbp]
 \centering
-\caption{\textbf{Table 1. Dataset characteristics.} Summary of all studies included in the analysis.}
+\caption{\textbf{Dataset characteristics.} Summary of all studies included in the analysis.}
 \small
-\begin{tabularx}{\textwidth}{lXllllrrr}
+\begin{tabular}{lllllllll}
 \toprule
 \textbf{OSD ID} & \textbf{Platform} & \textbf{Tissue} & \textbf{Ecotype} & \textbf{Hardware} & \textbf{Light} & \textbf{Flight} & \textbf{Ground} & \textbf{Total} \\
 \midrule
@@ -250,14 +232,14 @@ OSD-480 & RNA-seq & Root & Col-0 & EMCS & Cont. light & 400 & 0 & 400 \\
 OSD-522 & RNA-seq & Shoot & Col-0 & BRIC-LED & LD 4:2 & 18 & 18 & 36 \\
 OSD-678 & RNA-seq & Leaf & Col-0 & Petri dish & Cont. light & 18 & 18 & 36 \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{\textbf{Table 2. Per-study circadian phase shift results.} Watson-Williams test for each study with paired flight and ground controls.}
+\caption{\textbf{Per-study circadian phase shift results.} Watson-Williams test for each study with paired flight and ground controls.}
 \small
-\begin{tabularx}{\textwidth}{lrrrrrrl}
+\begin{tabular}{lrrrrrrl}
 \toprule
 \textbf{OSD ID} & \textbf{N\_F} & \textbf{N\_G} & \textbf{Shift (h)} & \textbf{CI lower} & \textbf{CI upper} & \textbf{$p$-value} & \textbf{Tissue} \\
 \midrule
@@ -281,14 +263,14 @@ OSD-427 & 24 & 24 & 0.17 & $-$0.08 & 0.43 & 0.170 & Leaf \\
 OSD-217 & 6 & 6 & 0.32 & $-$0.22 & 0.73 & 0.229 & Leaf \\
 OSD-678 & 18 & 18 & $-$0.22 & $-$1.59 & 1.21 & 0.750 & Leaf \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 
 \begin{table}[htbp]
 \centering
-\caption{\textbf{Table 3. Meta-analysis results by stratum.} Random-effects meta-analysis (REML) of phase shifts across studies.}
+\caption{\textbf{Meta-analysis results by stratum.} Random-effects meta-analysis (REML) of phase shifts across studies.}
 \small
-\begin{tabularx}{\textwidth}{lrrrrrr}
+\begin{tabular}{lrrrrrr}
 \toprule
 \textbf{Stratum} & \textbf{Studies} & \textbf{Pooled (h)} & \textbf{CI lower} & \textbf{CI upper} & \textbf{$p$-value} & \textbf{$I^2$ (\%)} \\
 \midrule
@@ -310,45 +292,69 @@ Unknown & 7 & $-$0.09 & $-$0.18 & $-$0.01 & 0.037 & 58.6 \\
 Cont. light & 3 & 0.002 & $-$0.17 & 0.18 & 0.978 & 37.7 \\
 LD 16:8 & 2 & 0.14 & $-$0.02 & 0.31 & 0.086 & 0.0 \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \end{table}
 
 \section*{Supplementary Figures}
 
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/figS1_pca.png}
-\caption{\textbf{Supplementary Figure S1. PCA of ChronoGauge sub-model predictions.} (\textbf{A}) PCA colored by condition (flight vs ground control). (\textbf{B}) PCA colored by study.}
+\caption{\textbf{PCA of ChronoGauge sub-model predictions.} (\textbf{A}) PCA colored by condition (flight vs ground control). (\textbf{B}) PCA colored by study.}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/figS2_clock_genes.png}
-\caption{\textbf{Supplementary Figure S2. Core clock gene expression heatmap.} Z-scored expression of core circadian clock genes (CCA1, LHY, TOC1, PRR9/7/5, GI, ELF4, ELF3, LUX, TIC) across all samples, sorted by condition and study.}
+\caption{\textbf{Core clock gene expression heatmap.} Z-scored expression of core circadian clock genes (CCA1, LHY, TOC1, PRR9/7/5, GI, ELF4, ELF3, LUX, TIC) across all samples, sorted by condition and study.}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{figures/figS3_phase_by_hardware.png}
-\caption{\textbf{Supplementary Figure S3. Phase shift by hardware type.} Box plots showing the distribution of per-study phase shifts grouped by hardware configuration.}
+\caption{\textbf{Phase shift by hardware type.} Box plots showing the distribution of per-study phase shifts grouped by hardware configuration.}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.8\textwidth]{figures/figS4_phase_by_light_regime.png}
-\caption{\textbf{Supplementary Figure S4. Phase shift by light regime.} Box plots showing the distribution of per-study phase shifts grouped by light regime.}
+\caption{\textbf{Phase shift by light regime.} Box plots showing the distribution of per-study phase shifts grouped by light regime.}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/figS5_fork_comparison.png}
-\caption{\textbf{Supplementary Figure S5. Fork A versus Fork B comparison.} Per-study phase shifts for Fork A (Barker 2023 cohort, 14 studies) and Fork B (all Arabidopsis spaceflight transcriptomics, 24 studies).}
+\caption{\textbf{Fork A versus Fork B comparison.} Per-study phase shifts for Fork A (Barker 2023 cohort, 14 studies) and Fork B (all Arabidopsis spaceflight transcriptomics, 24 studies).}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/figS6_model_uncertainty.png}
-\caption{\textbf{Supplementary Figure S6. Model uncertainty analysis.} (\textbf{A}) Relationship between phase shift magnitude and circular variance. (\textbf{B}) Number of ensemble sub-models used per study.}
+\caption{\textbf{Model uncertainty analysis.} (\textbf{A}) Relationship between phase shift magnitude and circular variance. (\textbf{B}) Number of ensemble sub-models used per study.}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/figS7_circadian_trajectory.png}
+\caption{\textbf{Circadian trajectory analysis.} (\textbf{A}) t-SNE embedding of 100-dimensional ChronoGauge sub-model predictions, colored by condition (flight vs ground control). (\textbf{B}) t-SNE embedding colored by study. (\textbf{C}) PCA of sub-model predictions colored by condition. (\textbf{D}) t-SNE embedding colored by predicted circadian time.}
+\end{figure}
+
+\renewcommand{\thefigure}{S7b}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.7\textwidth]{figures/figS7b_centroid_vs_shift.png}
+\caption{\textbf{Centroid distance versus phase shift.} t-SNE centroid distance (Euclidean distance between flight and ground centroids) plotted against absolute phase shift magnitude for 18 studies. Spearman $\rho = 0.633$, $p = 0.005$.}
+\addtocounter{figure}{-1}
+\end{figure}
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{figures/figS8_enrichment.png}
+\caption{\textbf{Gene set enrichment of phase-shifted studies.} (\textbf{A}) Normalized enrichment score (NES) for the circadian rhythm pathway (GO:0007623) across the four significant phase-shift studies. OSD-193 shows significant downregulation (NES = $-$2.25, FDR = 0.004). (\textbf{B}) Top enriched pathways (FDR $< 0.05$) for OSD-321, the study with the largest phase shift. (\textbf{C}) GSEA running enrichment score for the circadian rhythm pathway in OSD-193.}
 \end{figure}
 
 \section*{Supplementary Table}

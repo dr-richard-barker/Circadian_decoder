@@ -227,10 +227,14 @@ def fig5_stratified_analysis(per_study_df, meta_results, output_dir, stratify_by
     strata = [s for s in strata if s and s != '']
 
     n_strata = len(strata)
-    fig, axes = plt.subplots(1, n_strata, figsize=(5 * n_strata, 5), squeeze=False)
+    n_cols = 3
+    n_rows = (n_strata + n_cols - 1) // n_cols
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 4.5 * n_rows), squeeze=False)
 
     for idx, stratum in enumerate(strata):
-        ax = axes[0, idx]
+        r_idx = idx // n_cols
+        c_idx = idx % n_cols
+        ax = axes[r_idx, c_idx]
         stratum_data = included[included[stratify_by] == stratum]
 
         for i, (_, row) in enumerate(stratum_data.iterrows()):
@@ -242,20 +246,32 @@ def fig5_stratified_analysis(per_study_df, meta_results, output_dir, stratify_by
 
         # Meta-analysis for this stratum
         key = str(stratum)
+        yticks = list(range(len(stratum_data)))
+        yticklabels = list(stratum_data['osd_id'])
+
         if key in meta_results and 'POOLED_EFFECT' in meta_results[key]:
             m = meta_results[key]
             ax.errorbar(m['POOLED_EFFECT'], len(stratum_data) + 0.5,
                         xerr=[[m['POOLED_EFFECT'] - m['CI_LOWER']], [m['CI_UPPER'] - m['POOLED_EFFECT']]],
                         fmt='D', color=PHYLO_COLORS['green'], capsize=5, markersize=8)
+            yticks.append(len(stratum_data) + 0.5)
+            yticklabels.append('Pooled')
 
         ax.axvline(0, color='k', linestyle='--', alpha=0.3)
         ax.set_xlabel('Phase shift (h)')
-        ax.set_title(stratum, fontweight='bold')
-        ax.set_yticks([])
+        ax.set_title(stratum.replace('_', ' ').capitalize(), fontweight='bold')
+        ax.set_yticks(yticks)
+        ax.set_yticklabels(yticklabels, fontsize=8)
+        ax.set_ylim(-0.5, len(stratum_data) + 1.0)
+
+    # Hide any unused subplots
+    for empty_idx in range(n_strata, n_rows * n_cols):
+        r_idx = empty_idx // n_cols
+        c_idx = empty_idx % n_cols
+        axes[r_idx, c_idx].axis('off')
 
     fig.suptitle(f'Phase shift stratified by {stratify_by}', fontsize=14, y=0.98)
-    plt.subplots_adjust(top=0.88)
-    plt.tight_layout(rect=[0, 0, 1, 0.92])
+    fig.subplots_adjust(top=0.90, hspace=0.3, wspace=0.3)
     return save_figure(fig, output_dir, f'fig5_stratified_{stratify_by}')
 
 
@@ -413,8 +429,7 @@ def figS3_phase_by_hardware(per_study_df, output_dir):
     ax.set_ylabel('Phase shift (hours)')
     ax.set_title('Circadian phase shift by hardware type')
 
-    plt.subplots_adjust(bottom=0.3)
-    plt.tight_layout()
+    fig.subplots_adjust(bottom=0.35, left=0.15, right=0.95, top=0.90)
     return save_figure(fig, output_dir, 'figS3_phase_by_hardware')
 
 
@@ -447,8 +462,7 @@ def figS4_phase_by_light_regime(per_study_df, output_dir):
     ax.set_ylabel('Phase shift (hours)')
     ax.set_title('Circadian phase shift by light regime')
 
-    plt.subplots_adjust(bottom=0.25)
-    plt.tight_layout()
+    fig.subplots_adjust(bottom=0.25, left=0.15, right=0.95, top=0.90)
     return save_figure(fig, output_dir, 'figS4_phase_by_light_regime')
 
 

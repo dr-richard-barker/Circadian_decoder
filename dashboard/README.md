@@ -66,6 +66,6 @@ python3 -m http.server 8000
 
 ## Data sources
 
-- NASA GeneLab (23 Arabidopsis spaceflight transcriptomics studies)
+- NASA GeneLab (24 Arabidopsis spaceflight transcriptomics studies)
 - ChronoGauge (100-model ensemble circadian time predictor)
 - Watson-Williams test + random-effects meta-analysis (metafor)
