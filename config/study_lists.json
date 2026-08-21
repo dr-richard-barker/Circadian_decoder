@@ -9,13 +9,13 @@
     "description": "Fork B: All Arabidopsis thaliana spaceflight transcriptomics studies in NASA GeneLab (as of 2025).",
     "source": "NASA GeneLab OSDR API query for Arabidopsis + transcriptomics + spaceflight",
     "osd_ids": [7, 17, 37, 38, 44, 120, 121, 147, 193, 205, 217, 218, 223, 251, 281, 314, 321, 346, 427, 437, 480, 522, 678],
-    "notes": "OSD-480 has raw FASTQ only (no processed normalized counts). OSD-522 has unnormalized counts only. Both excluded from ChronoGauge analysis. OSD-251 and OSD-346 are flight-only (no ground controls), excluded from phase-shift meta-analysis."
+    "notes": "OSD-480 has raw FASTQ only (no processed normalized counts), excluded from ChronoGauge analysis. OSD-251 and OSD-346 are flight-only (no ground controls), excluded from phase-shift meta-analysis."
   },
   "excluded_from_chronogauge": {
     "OSD-213": "Legacy accession, unavailable in current OSDR API",
-    "OSD-480": "Raw FASTQ only, no processed normalized expression data",
-    "OSD-522": "Unnormalized counts only, not suitable for ChronoGauge"
+    "OSD-480": "Raw FASTQ only, no processed normalized expression data"
   },
+
   "excluded_from_meta_analysis": {
     "OSD-46": "Ground-only (radiation study), no Spaceflight factor",
     "OSD-136": "Ground-only (hypobaria study), no Spaceflight factor",

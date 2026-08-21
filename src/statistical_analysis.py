@@ -175,8 +175,72 @@ def per_study_analysis(predictions_df, metadata_df, min_replicates=3):
     return pd.DataFrame(results)
 
 
+def _run_meta_python(data):
+    """Fallback: Run random-effects meta-analysis (DerSimonian-Laird method) in pure Python."""
+    y = data['phase_shift_hours'].values
+    v = data['se'].values ** 2
+    k = len(y)
+    df = k - 1
+    
+    # Inverse variance weights
+    w = 1.0 / v
+    
+    # Fixed effect estimate
+    pooled_fe = np.sum(w * y) / np.sum(w)
+    
+    # Cochran's Q
+    Q = np.sum(w * (y - pooled_fe) ** 2)
+    
+    # Heterogeneity p-value
+    Q_p = stats.chi2.sf(Q, df) if df > 0 else 1.0
+    
+    # DerSimonian-Laird estimate of tau^2
+    sum_w = np.sum(w)
+    sum_w2 = np.sum(w ** 2)
+    c = sum_w - (sum_w2 / sum_w)
+    if c > 0:
+        tau2 = max(0.0, (Q - df) / c)
+    else:
+        tau2 = 0.0
+        
+    # Random effects weights
+    w_re = 1.0 / (v + tau2)
+    
+    # Random effects estimate
+    pooled_re = np.sum(w_re * y) / np.sum(w_re)
+    se_re = 1.0 / np.sqrt(np.sum(w_re))
+    
+    # Z-value and p-value
+    z = pooled_re / se_re
+    p = 2 * stats.norm.sf(abs(z))
+    
+    # Confidence intervals
+    ci_lower = pooled_re - 1.96 * se_re
+    ci_upper = pooled_re + 1.96 * se_re
+    
+    # I^2 heterogeneity index
+    if Q > df and Q > 0:
+        I2 = ((Q - df) / Q) * 100.0
+    else:
+        I2 = 0.0
+        
+    return {
+        'POOLED_EFFECT': float(pooled_re),
+        'SE': float(se_re),
+        'CI_LOWER': float(ci_lower),
+        'CI_UPPER': float(ci_upper),
+        'Z': float(z),
+        'P_VALUE': float(p),
+        'Q': float(Q),
+        'Q_P': float(Q_p),
+        'I2': float(I2),
+        'TAU2': float(tau2),
+        'N_STUDIES': int(k)
+    }
+
+
 def _run_metafor(data):
-    """Run metafor random-effects meta-analysis via R subprocess."""
+    """Run metafor random-effects meta-analysis via R subprocess, falling back to pure Python if R is not available."""
     csv_path = tempfile.mktemp(suffix='.csv')
     data[['osd_id', 'phase_shift_hours', 'se']].to_csv(csv_path, index=False)
 
@@ -202,9 +266,15 @@ cat("N_STUDIES:", res$k, "\\n")
         f.write(r_script)
 
     try:
-        result = subprocess.run(['Rscript', r_path], capture_output=True, text=True, timeout=60)
-        output = result.stdout
+        import shutil
+        if not shutil.which('Rscript'):
+            raise FileNotFoundError("Rscript executable not found on PATH")
 
+        result = subprocess.run(['Rscript', r_path], capture_output=True, text=True, timeout=60)
+        if result.returncode != 0:
+            raise RuntimeError(f"Rscript failed: {result.stderr}")
+            
+        output = result.stdout
         parsed = {}
         for line in output.split('\n'):
             if ':' in line and any(k in line for k in ['POOLED_EFFECT', 'SE:', 'CI_', 'Z:', 'P_VALUE', 'Q:', 'Q_P', 'I2', 'TAU2', 'N_STUDIES']):
@@ -222,7 +292,9 @@ cat("N_STUDIES:", res$k, "\\n")
             os.unlink(csv_path)
         if os.path.exists(r_path):
             os.unlink(r_path)
-        return {'error': str(e)}
+        # Fall back to pure Python implementation
+        return _run_meta_python(data)
+
 
 
 def meta_analysis(per_study_results, stratify_by=None):

@@ -13,7 +13,7 @@ Per-sample aggregated circadian time predictions.
 - **`osd_id`**: NASA Open Science Data Repository study accession (e.g., `OSD-321`)
 
 ### `all_model_predictions.csv`
-Raw prediction outputs from each of the 100 individual neural network sub-models in the ChronoGauge ensemble across all 603 samples. Columns `0` to `99` represent the sub-model IDs.
+Raw prediction outputs from each of the 100 individual neural network sub-models in the ChronoGauge ensemble across all 615 samples. Columns `0` to `99` represent the sub-model IDs.
 
 ### `clock_gene_expression.csv`
 Z-scored expression values of 11 core circadian clock genes used for visualization and validation.
@@ -24,7 +24,7 @@ Z-scored expression values of 11 core circadian clock genes used for visualizati
 - **`osd_id`**: Study accession
 
 ### `per_study_results.csv`
-Circadian phase shift statistics and Watson-Williams test results for the 18 studies containing both flight and ground controls.
+Circadian phase shift statistics and Watson-Williams test results for the 19 studies containing both flight and ground controls.
 - **`osd_id`**: Study accession
 - **`n_flight`**: Number of spaceflight replicates
 - **`n_ground`**: Number of ground control replicates

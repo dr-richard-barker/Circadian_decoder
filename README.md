@@ -13,7 +13,7 @@ Deep learning analysis of circadian clock phase disruption in spaceflight-grown 
 
 This repository contains the complete reproducible analysis pipeline and manuscript resources for applying **ChronoGauge** — a deep learning bagging ensemble of 100 neural network circadian time predictors — to all processed *Arabidopsis* spaceflight transcriptomics data in the NASA Open Science Data Repository (OSDR). 
 
-The analysis spans **23 studies**, **603 samples**, **13 ecotypes**, and **12 hardware configurations**. By predicting circadian time (CT) directly from transcriptomic snapshots, we compare spaceflight and ground control phase distributions using circular statistics (Watson-Williams tests) and perform random-effects meta-analysis.
+The analysis spans **24 studies**, **615 samples**, **13 ecotypes**, and **12 hardware configurations**. By predicting circadian time (CT) directly from transcriptomic snapshots, we compare spaceflight and ground control phase distributions using circular statistics (Watson-Williams tests) and perform random-effects meta-analysis.
 
 <p align="center">
   <img src="figures/fig1_study_overview.png" width="90%" alt="Study Overview">
@@ -23,9 +23,9 @@ The analysis spans **23 studies**, **603 samples**, **13 ecotypes**, and **12 ha
 
 ## Key Scientific Findings
 
-*   **Circadian Phase Advance**: Random-effects meta-analysis across 18 studies with paired flight-ground controls reveals a small but statistically significant phase advance under spaceflight (pooled shift = $-0.09$ h, 95% CI [$-0.18$, $-0.001$], $p = 0.046$, $I^2 = 86.5\%$).
-*   **Tissue Specificity**: The phase shift is driven primarily by root tissue (pooled shift = $-0.17$ h, $p < 0.001$, $I^2 = 8.9\%$), which shows remarkably low heterogeneity across studies.
-*   **Light Modulation**: The phase advance is significant only in dark-grown samples (pooled shift = $-0.20$ h, $p = 0.024$). continuous light grown samples show no significant shift ($+0.01$ h, $p = 0.93$), suggesting photic entrainment overrides spaceflight-induced perturbations.
+*   **Circadian Phase Advance**: Random-effects meta-analysis across 19 studies with paired flight-ground controls reveals a consistent directional phase advance under spaceflight (pooled shift = $-0.08$ h, 95% CI [$-0.17$, $+0.01$], $p = 0.092$ overall, $p = 0.008$ in Fork A, $I^2 = 86.2\%$).
+*   **Tissue Specificity**: The phase shift is driven primarily by root tissue (pooled shift = $-0.17$ h, $p < 0.001$, $I^2 = 0.0\%$, $k = 4$: OSD-120, OSD-193, OSD-218, OSD-281), which shows zero heterogeneity across studies.
+*   **Light Modulation**: The phase advance is significant in dark-grown samples (pooled shift = $-0.20$ h, $p = 0.036$, $k = 6$). Continuous light grown samples show no significant shift ($+0.002$ h, $p = 0.98$), suggesting photic entrainment overrides spaceflight-induced perturbations.
 *   **Circadian Trajectory Correlation**: Multivariate t-SNE embedding of the 100-dimensional sub-model predictions shows that centroid separation between flight and ground clusters correlates strongly with absolute phase shift magnitude (Spearman $\rho = 0.633$, $p = 0.005$).
 *   **Transcriptional Suppression**: Gene Set Enrichment Analysis (fgsea) links the phase advance in root study OSD-193 to significant downregulation of the circadian rhythm pathway (GO:0007623, NES = $-2.25$, FDR = 0.004), with core oscillator genes (*LHY*, *TOC1*, *PRR5*, *CCA1*) among the leading edge.
 

@@ -239,7 +239,29 @@ def main():
     print("\n" + "=" * 70)
     print("STEP 1: METADATA CURATION")
     print("=" * 70)
-    metadata = curate_all_metadata(DATA_DIR, os.path.join(DATA_DIR, "arabidopsis_transcriptomics.json"))
+    
+    # Load existing metadata cache if available
+    metadata_cache_path = os.path.join(TABLES_DIR, "tableS1_sample_metadata.csv")
+    if os.path.exists(metadata_cache_path):
+        print(f"Loading cached sample metadata from {os.path.basename(metadata_cache_path)}...")
+        cached_metadata = pd.read_csv(metadata_cache_path)
+    else:
+        cached_metadata = pd.DataFrame()
+        
+    # Curate new metadata for studies in DATA_DIR
+    new_metadata = curate_all_metadata(DATA_DIR, os.path.join(DATA_DIR, "arabidopsis_transcriptomics.json"))
+    
+    if len(cached_metadata) > 0 and len(new_metadata) > 0:
+        new_study_ids = new_metadata['osd_id'].unique().tolist()
+        print(f"Merging new metadata for studies {new_study_ids} with cache...")
+        # Remove updated studies from cache
+        cached_filtered = cached_metadata[~cached_metadata['osd_id'].isin(new_study_ids)]
+        metadata = pd.concat([cached_filtered, new_metadata], ignore_index=True)
+    elif len(new_metadata) > 0:
+        metadata = new_metadata
+    else:
+        metadata = cached_metadata
+
     print(f"Total samples: {len(metadata)}")
 
     # Step 2: Run ChronoGauge on all studies

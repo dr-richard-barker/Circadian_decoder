@@ -22,6 +22,6 @@ OSD-437,RNA Sequencing (RNA-Seq),shoot,Col-0,European Modular Cultivation System
 OSD-44,DNA microarray,whole_seedling,act2-3,,dark,6,6,12
 OSD-46,DNA microarray,whole_seedling,wild_type,,unknown,0,0,44
 OSD-480,RNA Sequencing (RNA-Seq),root,Col-0,European Modular Cultivation System (EMCS),continuous_light,400,0,400
-OSD-522,"['mass spectrometry', 'RNA Sequencing (RNA-Seq)']",shoot,Col-0,,LD_4:2,18,18,36
+OSD-522,RNA Sequencing (RNA-Seq),shoot,Col-0,BRIC-LED,LD_4:2,18,18,36
 OSD-678,RNA Sequencing (RNA-Seq),leaf,Col-0,Petri Dish,continuous_light,18,18,36
 OSD-7,DNA microarray,hypocotyl,Ws,Advanced Biological Research System (ABRS),unknown,18,18,36

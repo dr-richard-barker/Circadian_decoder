@@ -294,7 +294,9 @@ def extract_sample_metadata(df, osd_id):
 
         # Hardware
         sample['hardware'] = str(row[hardware_col]).strip() if hardware_col else ''
-        if sample['hardware'] in ('', 'nan', 'None'):
+        if osd_id == 522:
+            sample['hardware'] = 'BRIC-LED'
+        elif sample['hardware'] in ('', 'nan', 'None'):
             sample['hardware'] = ''
 
         # Light regime
@@ -327,9 +329,20 @@ def curate_all_metadata(data_dir, study_info_path=None):
     # Load study info if available
     study_info = {}
     if study_info_path and os.path.exists(study_info_path):
-        with open(study_info_path) as f:
-            study_info_list = json.load(f)
-            study_info = {s['osd_id']: s for s in study_info_list}
+        try:
+            with open(study_info_path) as f:
+                study_info_list = json.load(f)
+                study_info = {s['osd_id']: s for s in study_info_list}
+        except Exception as e:
+            print(f"  Error loading study info JSON: {e}")
+
+    if 'OSD-522' not in study_info:
+        study_info['OSD-522'] = {
+            'title': 'Integrative Transcriptomics and Proteomics Profiling of Arabidopsis thaliana Elucidates Novel Mechanisms Underlying Spaceflight Adaptation Study',
+            'assay_technology': 'RNA Sequencing (RNA-Seq)',
+            'platform': 'Illumina NovaSeq 6000',
+            'study_type': 'Transcription Profiling'
+        }
 
     # Find all study directories
     study_dirs = [d for d in os.listdir(data_dir) if d.startswith('OSD-') and os.path.isdir(os.path.join(data_dir, d))]
