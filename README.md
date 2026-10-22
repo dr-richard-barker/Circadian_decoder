@@ -66,12 +66,10 @@ Circadian_decoder/
 ├── figures/                  # Main and supplementary figures (PNG & SVG)
 ├── tables/                   # Main and supplementary tables (CSV)
 │   └── README.md             # Tables index
-├── dashboard/                # Plotly interactive web app
-│   ├── index.html            # Main dashboard HTML
-│   ├── data.js               # Embedded JSON data for interactive plots
-│   └── README.md             # Dashboard deployment guide
-└── versions/
-    └── v1/                   # Previous version v1.0.0 analysis snapshot
+└── dashboard/                # Plotly interactive web app
+    ├── index.html            # Main dashboard HTML
+    ├── data.js               # Embedded JSON data for interactive plots
+    └── README.md             # Dashboard deployment guide
 ```
 
 ---
